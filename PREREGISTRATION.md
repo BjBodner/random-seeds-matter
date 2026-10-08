@@ -105,3 +105,30 @@ Source: `results/*.txt`, full run, 83.6 min with 12 workers (`results/env.txt`).
 **Not pre-registered (labelled exploratory):** `experiments/e5_exploratory.py` decomposes only the two close models (RandomForest and GradBoost) from E5's saved fits. Model share: 0.9% at n = 300, 77.8% at n = 3,000.
 
 **Deviation:** E5's MLP used `early_stopping=True`, a runtime decision made before any study run (see `article/DECISIONS.md`).
+
+**Robustness check (appended 2026-10-09).** P5.1 was re-run at n = 300 with the MLP exactly as pre-registered (`MLPClassifier(max_iter=500)`, no early stopping): same seeds, same subsample, same design (`experiments/e5_prereg_mlp.py`, `results/e5_prereg_mlp.txt`). MLP mean accuracy 0.700, RandomForest 0.696, GradBoost 0.688; model share **1.4% → P5.1 HELD under the exact pre-registered spec.** The failure in the main run came from the early-stopping deviation. n = 3,000 was not re-run with the plain MLP (too slow), so P5.2 stands as run.
+
+---
+
+## E7 — The golden-set lottery: an intent-router eval (ADDED 2026-10-09, committed before any E7 code exists or runs)
+
+Motivation (Benjy, 2026-10-09): golden sets in AI engineering are usually 100–500 labelled examples, because labels are expensive. E7 tests the article's thesis in that setting: a router (an intent classifier that sends each query to one of 77 handlers) is evaluated on a small golden set. A "router failure" is a misrouted query.
+
+Design, fixed in advance:
+- **Data:** Banking77 (PolyAI; 10,003 train / 3,080 test customer-service queries, 77 intents, CC BY 4.0), downloaded 2026-10-09 from github.com/PolyAI-LDN/task-specific-datasets. SHA-256: train `b06e26ac…cc664b`, test `d12d6e3b…474d`.
+- **Two routers**, trained once on the full official train split and both deterministic:
+  - **v1 (current):** TF-IDF on word 1–2-grams (`sublinear_tf=True`) + `LogisticRegression(max_iter=2000)`.
+  - **v2 (candidate):** TF-IDF on word 1–2-grams + char_wb 2–5-grams + `LinearSVC(C=1.0)`.
+- **"Better" and "worse"** are defined by accuracy on all 3,080 test queries, the population proxy.
+- **Golden sets:** g ∈ {100, 200, 300, 500, 1,000, 3,000} queries, drawn **with replacement** from the 3,080 test queries (sampling from the query stream). 1,000 golden sets per size, each from a seed in the `SeedSequence(20261008)` stream (7, k).
+- **Per golden set:** both failure rates; the measured difference; the "wrong winner" (the worse router strictly better on that set); ties; and McNemar's exact test on discordant queries (p < 0.05 in the correct direction counts as "detected").
+- **Golden-set size for 80% power:** the analytic McNemar sample size from the full-test discordance rates.
+
+Predictions:
+- P7.1 The two routers' full-test accuracies differ by less than 3 points (a close, version-to-version pair).
+- P7.2 At g = 300, the worse router ties or beats the better one on ≥ 15% of golden sets.
+- P7.3 At g = 300, McNemar detects the true difference on ≤ 60% of golden sets.
+- P7.4 The golden-set size needed for 80% McNemar power is ≥ 500 queries.
+- **Falsifier:** if the routers differ by ≥ 5 points, golden-set noise at g = 300 is irrelevant for this pair, and the article says so.
+
+Presentation change (does not affect any prediction): the article now centres on golden-set sizes (100–500 rows). Results for 1,000+ rows move to the "until they don't" section, and the hero becomes E7's g = 300 distribution.
