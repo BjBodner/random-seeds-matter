@@ -1,12 +1,12 @@
 E7/E7b descriptive (not pre-registered): size of the measured difference between two routers
 v1 vs v2 | g=300: |measured gap| >= 1 point on 99.9% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 10.3 points
 v1 vs v2 | g=500: |measured gap| >= 1 point on 100.0% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 10.4 points
-t1: C=0.5 | g=300: |measured gap| >= 1 point on 5.5% of golden sets (the worse router ahead by >= 1 point on 0.6%); largest measured gap 2.0 points
-t1: C=0.5 | g=500: |measured gap| >= 1 point on 2.1% of golden sets (the worse router ahead by >= 1 point on 0.2%); largest measured gap 1.4 points
-t2: balanced classes | g=300: |measured gap| >= 1 point on 2.9% of golden sets (the worse router ahead by >= 1 point on 0.2%); largest measured gap 1.7 points
-t2: balanced classes | g=500: |measured gap| >= 1 point on 0.5% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 1.4 points
-t3: char 3-5-grams | g=300: |measured gap| >= 1 point on 3.4% of golden sets (the worse router ahead by >= 1 point on 0.1%); largest measured gap 1.7 points
-t3: char 3-5-grams | g=500: |measured gap| >= 1 point on 0.6% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 1.4 points
+t1: C=0.5 | g=300: |measured gap| >= 1 point on 9.1% of golden sets (the worse router ahead by >= 1 point on 1.5%); largest measured gap 2.0 points
+t1: C=0.5 | g=500: |measured gap| >= 1 point on 3.9% of golden sets (the worse router ahead by >= 1 point on 0.3%); largest measured gap 1.4 points
+t2: balanced classes | g=300: |measured gap| >= 1 point on 5.2% of golden sets (the worse router ahead by >= 1 point on 0.2%); largest measured gap 1.7 points
+t2: balanced classes | g=500: |measured gap| >= 1 point on 1.1% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 1.4 points
+t3: char 3-5-grams | g=300: |measured gap| >= 1 point on 5.8% of golden sets (the worse router ahead by >= 1 point on 0.2%); largest measured gap 1.7 points
+t3: char 3-5-grams | g=500: |measured gap| >= 1 point on 1.0% of golden sets (the worse router ahead by >= 1 point on 0.0%); largest measured gap 1.4 points
 
 Calculation (McNemar, two-sided alpha 0.05, 80% power; Connor 1987 formula): golden-set size needed
 to detect a true gap in failure rate, given how often the two routers disagree

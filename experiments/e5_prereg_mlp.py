@@ -38,13 +38,18 @@ def cell(X, y, split_seed, internal_seed):
         return [make(internal_seed).fit(Xtr, ytr).score(Xte, yte) for make in PREREG_MODELS.values()]
 
 
-def run(out=os.path.join(REPO, "results")):
+def run(out=os.path.join(REPO, "results"), img=None, quick=False):
     n_s = 30
     split_seeds, internal_seeds = seeds(5, 1, n_s), seeds(5, 2, n_s)
     X, y = synthetic_pool()
     Xs, ys = subsample(X, y, 300, seeds(5, 0, 2)[0])          # the same n = 300 subsample as E5
     cells = pmap(cell, [(Xs, ys, s, i) for s in split_seeds for i in internal_seeds])
     A = np.array(cells).reshape(n_s, n_s, -1).transpose(2, 0, 1)
+    import pandas as pd
+    pd.DataFrame([(name, split_seeds[s], internal_seeds[i], A[k, s, i]) for k, name in enumerate(PREREG_MODELS)
+                  for s in range(n_s) for i in range(n_s)],
+                 columns=["model", "split_seed", "internal_seed", "accuracy"]).to_csv(
+        os.path.join(out, "e5_prereg_mlp.csv"), index=False)
     sh = variance_shares(A)
     with tee(os.path.join(out, "e5_prereg_mlp.txt")):
         print("E5 robustness check: n = 300 with the MLP exactly as pre-registered (max_iter=500, no early stopping)")

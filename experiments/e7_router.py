@@ -214,39 +214,53 @@ def figures(out, img):
     pairs = list(dict.fromkeys(df.pair))           # v1 vs v2 first, then the three tweaks
     titles = {p: ("v2 vs v1: a real upgrade" if p == "v1 vs v2" else f"v2 vs {p}") for p in pairs}
 
-    # hero: every pre-registered comparison on 300-query golden sets (no pair is hand-picked)
-    fig, axes = plt.subplots(len(pairs), 1, figsize=(10, 2.1 * len(pairs) + 1.2), sharex=True)
+    # hero: every pre-registered comparison on 300-query golden sets (no pair is hand-picked).
+    # Top row: the real upgrade on its own scale. Bottom row: the three tweaks, zoomed to +/-3 points.
+    from matplotlib.patches import Patch
+    plt.rcParams.update({"font.size": 16})
+    fig = plt.figure(figsize=(17, 9))
+    gs = fig.add_gridspec(2, 3, height_ratios=[1, 1.15], hspace=0.55, wspace=0.12)
     step = 100 / 300
     d300 = df[df.g == 300]
-    span = 100 * (d300.fail_worse - d300.fail_better)
-    edges = np.arange(np.floor(span.min()) - 1 - step / 2, np.ceil(span.max()) + 1 + step, step)
-    for ax, p in zip(axes, pairs):
+    colors = (OKABE_ITO["orange"], NEUTRAL, OKABE_ITO["sky"])
+
+    def panel(ax, p, lo, hi, title):
         diff = 100 * (d300[d300.pair == p].fail_worse - d300[d300.pair == p].fail_better)
-        counts, _, patches = ax.hist(diff, bins=edges, color=OKABE_ITO["sky"], edgecolor=BG)
+        edges = np.arange(lo - step / 2, hi + step, step)
+        _, _, patches = ax.hist(diff.clip(lo, hi), bins=edges, color=colors[2], edgecolor=BG)
         for patch, left in zip(patches, edges[:-1]):
             mid = left + step / 2
-            if mid < -1e-9:
-                patch.set_facecolor(OKABE_ITO["orange"])
-            elif abs(mid) < 1e-9:
-                patch.set_facecolor(NEUTRAL)
+            patch.set_facecolor(colors[0] if mid < -1e-9 else colors[1] if abs(mid) < 1e-9 else colors[2])
         ax.axvline(0, color="#FFFFFF", lw=1.0, ls=":")
         wrong, tie = np.mean(diff < 0), np.mean(diff == 0)
-        ax.text(0.99, 0.94, titles[p], transform=ax.transAxes, va="top", ha="right", fontsize=13, fontweight="bold")
-        ax.text(0.99, 0.64, f"worse router wins {100 * wrong:.1f}%, ties {100 * tie:.1f}%", transform=ax.transAxes,
-                va="top", ha="right", fontsize=13, color=OKABE_ITO["orange"], fontweight="bold")
+        ax.set_title(title, fontsize=17, fontweight="bold", loc="left")
+        ax.text(0.02, 0.95, f"worse ahead {100 * wrong:.1f}%\ntie {100 * tie:.1f}%", transform=ax.transAxes,
+                va="top", ha="left", fontsize=15, color=OKABE_ITO["orange"], fontweight="bold")
         ax.set_yticks([])
         ax.grid(axis="y", visible=False)
         ax.spines["left"].set_visible(False)
-    axes[-1].set_xlabel("measured improvement of the truly better router on one 300-query golden set "
-                        "(failure-rate points)", fontsize=12)
-    axes[-1].tick_params(labelsize=12)
-    fig.tight_layout()
+        ax.tick_params(labelsize=14)
+
+    top = fig.add_subplot(gs[0, :])
+    panel(top, "v1 vs v2", -3, 12, "A real upgrade: v2 vs v1 (true gap 5.5 points)")
+    top.set_xlabel("measured improvement of the better router on one 300-query golden set (points)", fontsize=15)
+    tweaks = [p for p in pairs if p != "v1 vs v2"]
+    for k, p in enumerate(tweaks):
+        ax = fig.add_subplot(gs[1, k])
+        panel(ax, p, -3, 3, f"Tweak {p.split(':')[0]}: {p.split(': ', 1)[1]}")
+        ax.set_xlim(-3.2, 3.2)
+        if k == 1:
+            ax.set_xlabel("same measure, zoomed to ±3 points (true gap 0.2 points)", fontsize=15)
+    fig.legend(handles=[Patch(color=colors[2], label="better router ahead"), Patch(color=colors[1], label="tie"),
+                        Patch(color=colors[0], label="worse router ahead")],
+               loc="upper center", ncol=3, fontsize=15, bbox_to_anchor=(0.5, 1.02))
     save_fig(fig, img, "e7a_golden_set_lottery")
+    plt.rcParams.update({"font.size": 12})
 
     # expansion: when does the model take back control?
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.6))
-    plot_boundary_map(load_cells(out), ax=a1, legend_loc="center right")
-    a1.set_title("Training-set size: R(n) on the E1 datasets")
+    plot_boundary_map(load_cells(out), ax=a1, legend_loc="upper right", legend_fontsize=11)
+    a1.set_title("Dataset size (train + test): R(n) on the E1 datasets")
     marks = ["o", "s", "D", "^"]
     cols = [OKABE_ITO["blue"], OKABE_ITO["orange"], OKABE_ITO["purple"], OKABE_ITO["green"]]
     for p, m, c in zip(pairs, marks, cols):

@@ -26,15 +26,15 @@ python seeds_matter.py --only e1,e3 --n-jobs 8
 | Experiment | Script | Results | Figures |
 |---|---|---|---|
 | Shared seeds, parallel map, data | `experiments/common.py` | — | — |
-| E1 — the split lottery and the boundary map | `experiments/e1_split.py` | `results/e1_split.txt`, `.csv` | `e1a_parallel_universes.png`, `e1b_boundary_map.png` (hero), `e1c_worst_case.png` |
+| E1 — the split lottery and the boundary map | `experiments/e1_split.py` | `results/e1_split.txt`, `.csv` | `e1a_parallel_universes.png`, `e1b_boundary_map.png` (standalone boundary map), `e1c_worst_case.png` |
 | E2 — stratification vs recall noise | `experiments/e2_imbalance.py` | `results/e2_imbalance.txt`, `.csv` | `e2_imbalance.png` |
 | E3 — the init lottery, audited | `experiments/e3_init.py` | `results/e3_init.txt`, `.csv` | `e3_init_audit.png` |
 | E4 — k-means restarts | `experiments/e4_kmeans.py` | `results/e4_kmeans.txt`, `.csv` | `e4a_kmeans_scatter.png`, `e4b_ari_distributions.png` |
 | E5 — variance decomposition | `experiments/e5_decomposition.py` | `results/e5_decomposition.txt`, `.csv` | `e5_variance_shares.png` |
-| E5 robustness — the MLP exactly as pre-registered (n = 300) | `experiments/e5_prereg_mlp.py` | `results/e5_prereg_mlp.txt` | (bar in `e5_variance_shares.png`) |
+| E5 robustness — the MLP exactly as pre-registered (n = 300) | `experiments/e5_prereg_mlp.py` (`--only e5r`) | `results/e5_prereg_mlp.txt`, `.csv` | (bar in `e5_variance_shares.png`) |
 | E5 follow-up (exploratory) — close pair only, bootstrap CIs | `experiments/e5_exploratory.py` (reads the E5 CSV) | `results/e5_exploratory.txt` | `e5_variance_shares.png` |
 | E7 / E7b — the golden-set lottery: an intent router on Banking77 (a real upgrade + 3 small tweaks) | `experiments/e7_router.py` | `results/e7_router.txt`, `results/e7b_tweaks.txt`, `.csv` | `e7a_golden_set_lottery.png` (hero), `e7b_until_they_dont.png` |
-| E7 descriptive + McNemar sample-size table | `experiments/e7_descriptive.py` | `results/e7_descriptive.txt` | — |
+| E7 descriptive + McNemar sample-size table | `experiments/e7_descriptive.py` (`--only e7d`) | `results/e7_descriptive.txt` | — |
 | E6 — comparing two models honestly | `experiments/e6_fix.py` | `results/e6_fix.txt`, `.csv` | `e6_procedures.png` |
 
 Each script's code between the `# --- article: ... ---` markers is exactly what the article shows. `tools/render_draft.py` pastes it into the article, and `tools/check_code_blocks.py` fails if the two ever drift. Running a script directly prints the article's numbers; `seeds_matter.py` also writes the CSVs, figures and pre-registration checks.

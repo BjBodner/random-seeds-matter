@@ -9,19 +9,23 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import numpy as np
 import pandas as pd
 
 from experiments.common import REPO, pct, tee
 
 
-def run(out=os.path.join(REPO, "results")):
+def run(out=os.path.join(REPO, "results"), img=None, quick=False):
     df = pd.read_csv(os.path.join(out, "e7_router.csv"))
     df["gap_pts"] = 100 * (df.fail_worse - df.fail_better)
+    # compare whole query counts, not floats: 1 point on 300 queries is exactly 3 queries
+    df["gap_q"] = np.round((df.fail_worse - df.fail_better) * df.g).astype(int)
+    df["one_pt_q"] = np.ceil(0.01 * df.g).astype(int)
     with tee(os.path.join(out, "e7_descriptive.txt")):
         print("E7/E7b descriptive (not pre-registered): size of the measured difference between two routers")
         for (pair, g), d in df[df.g.isin([300, 500])].groupby(["pair", "g"], sort=False):
-            big = (d.gap_pts.abs() >= 1.0).mean()
-            wrong_big = (d.gap_pts <= -1.0).mean()
+            big = (d.gap_q.abs() >= d.one_pt_q).mean()
+            wrong_big = (d.gap_q <= -d.one_pt_q).mean()
             print(f"{pair} | g={g}: |measured gap| >= 1 point on {pct(big)} of golden sets "
                   f"(the worse router ahead by >= 1 point on {pct(wrong_big)}); "
                   f"largest measured gap {d.gap_pts.abs().max():.1f} points")

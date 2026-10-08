@@ -22,6 +22,8 @@ EXPERIMENTS = {
     "e5": "experiments.e5_decomposition",
     "e6": "experiments.e6_fix",
     "e7": "experiments.e7_router",
+    "e5r": "experiments.e5_prereg_mlp",      # robustness: n = 300 with the MLP exactly as pre-registered
+    "e7d": "experiments.e7_descriptive",     # descriptive follow-up + McNemar sample-size table (reads E7 CSV)
 }
 
 

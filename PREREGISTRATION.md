@@ -153,3 +153,7 @@ Predictions:
 - P7b.2 For every tweak within 1.5 points, the worse router of the pair ties or wins on ≥ 20% of 300-query golden sets.
 - P7b.3 For every tweak within 1.5 points, McNemar detects the difference on ≤ 30% of 300-query golden sets, and 80% power needs ≥ 1,000 queries.
 - **Falsifier:** if all 3 tweaks are ≥ 3 points from v2, the "small tweak" scenario isn't small here, and the article says so.
+
+**E7b outcomes (appended 2026-10-09 after the E7b run; the predictions above are unedited).** All three tweaks are 0.2 points from v2 on the full test set. **P7b.1 HELD** (3 of 3 within 1.5 points). **P7b.2 HELD**: the worse router ties or wins on 51.2% (t1), 47.8% (t2) and 51.1% (t3) of 300-query golden sets. **P7b.3 HELD**: McNemar detects on 0.1% / 0.0% / 0.0% at 300 queries, and 80% power needs 22,239 / 9,399 / 9,399 queries. The falsifier did not trigger.
+
+**Tally across all pre-registered predictions: 14 of 22 held as run** (E1–E6: 11 of 15; E7: 0 of 4; E7b: 3 of 3). P5.1 also holds under the exact pre-registered spec (robustness rerun).
