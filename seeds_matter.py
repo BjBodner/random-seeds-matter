@@ -21,6 +21,7 @@ EXPERIMENTS = {
     "e4": "experiments.e4_kmeans",
     "e5": "experiments.e5_decomposition",
     "e6": "experiments.e6_fix",
+    "e7": "experiments.e7_router",
 }
 
 

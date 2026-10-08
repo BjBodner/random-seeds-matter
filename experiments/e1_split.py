@@ -89,51 +89,54 @@ def e1_split_lottery(quick=QUICK):
     return cells
 
 
-def plot_boundary_map(cells, path="images/e1b_boundary_map.png"):
+if __name__ == "__main__":
+    e1_cells = e1_split_lottery()
+# --- end ---
+
+
+def plot_boundary_map(cells, path="images/e1b_boundary_map.png", ax=None):
     """The hero figure: R(n) per dataset, median line and min-max band over subsamples."""
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
     from matplotlib.ticker import FuncFormatter, NullFormatter
+    from experiments.common import BG, NEUTRAL, OKABE_ITO, dark_style
+    plt = dark_style()
     n_sub = 1 + max(j for (_, _, j) in cells)
-    fig, ax = plt.subplots(figsize=(9, 5.4), facecolor="#121212")
-    ax.set_facecolor("#121212")
-    for name, color in (("breast_cancer", "#E69F00"), ("synthetic", "#56B4E9")):
-        R = np.array([[seeds_vs_models(cells[name, n, j])[2] for j in range(n_sub)]
-                      for n in SIZES[name]])
-        ax.fill_between(SIZES[name], R.min(axis=1), R.max(axis=1), color=color, alpha=0.25, lw=0)
-        ax.plot(SIZES[name], np.median(R, axis=1), "o-", color=color, lw=2.6, ms=6,
-                label={"breast_cancer": "Breast cancer (UCI)", "synthetic": "Synthetic"}[name])
+    own = ax is None
+    if own:
+        fig, ax = plt.subplots(figsize=(10, 6.2))
+    labels = {"breast_cancer": "Breast cancer (UCI, 569 rows max)", "synthetic": "Synthetic"}
+    colors = {"breast_cancer": OKABE_ITO["orange"], "synthetic": OKABE_ITO["sky"]}
     allR = np.array([seeds_vs_models(a)[2] for a in cells.values()])
-    ax.axhline(1, color="white", ls="--", lw=1.4)
+    for name in ("synthetic", "breast_cancer"):
+        R = np.array([[seeds_vs_models(cells[name, n, j])[2] for j in range(n_sub)] for n in SIZES[name]])
+        ax.fill_between(SIZES[name], R.min(axis=1), R.max(axis=1), color=colors[name], alpha=0.16, lw=0)
+        ax.plot(SIZES[name], R.min(axis=1), color=colors[name], lw=0.8, alpha=0.6)
+        ax.plot(SIZES[name], R.max(axis=1), color=colors[name], lw=0.8, alpha=0.6)
+        ax.plot(SIZES[name], np.median(R, axis=1), "o-", color=colors[name], lw=3.2, ms=8, label=labels[name])
+    ax.axhline(1, color="#FFFFFF", ls="--", lw=1.6)
     ax.set_ylim(min(allR.min(), 0.5) / 1.6, max(allR.max(), 2) * 1.8)
-    ax.set(xscale="log", yscale="log", xlabel="dataset size n (log scale)",
-           ylabel="R = split-seed spread / model spread (log scale)")
-    ax.text(0.02, 0.96, "seeds win (R > 1)", transform=ax.transAxes, va="top", weight="bold", color="white")
-    ax.text(0.02, 0.04, "models win (R < 1)", transform=ax.transAxes, weight="bold", color="white")
+    ax.set(xscale="log", yscale="log")
+    ax.set_xlabel("dataset size n (log scale)", fontsize=15)
+    ax.set_ylabel("R = split-seed spread / model spread", fontsize=15)
+    ax.text(0.02, 0.97, "seeds win (R > 1)", transform=ax.transAxes, va="top", fontsize=16, fontweight="bold")
+    ax.text(0.02, 0.03, "models win, on average (R < 1)", transform=ax.transAxes, fontsize=16, fontweight="bold")
+    syn = [np.median([seeds_vs_models(cells["synthetic", n, j])[2] for j in range(n_sub)]) for n in SIZES["synthetic"]]
+    c = crossing(SIZES["synthetic"], syn)
+    if c:
+        ax.annotate(f"synthetic crosses 1\nat n ≈ {int(round(c[2], -1))}", xy=(c[2], 1), xytext=(c[2] * 1.9, 2.4),
+                    fontsize=14, fontweight="bold", color=OKABE_ITO["sky"],
+                    arrowprops=dict(arrowstyle="->", color=OKABE_ITO["sky"], lw=1.6))
     for axis in (ax.xaxis, ax.yaxis):
         axis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.4g}"))
         axis.set_minor_formatter(NullFormatter())
     ax.set_xticks([100, 250, 500, 1000, 2500, 5000])
     lo_y, hi_y = ax.get_ylim()
     ax.set_yticks([t for t in (0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16) if lo_y <= t <= hi_y])
-    ax.tick_params(colors="white")
-    ax.xaxis.label.set_color("white"); ax.yaxis.label.set_color("white")
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color("#BBBBBB")
-    ax.grid(color="#333333", lw=0.6)
-    ax.legend(frameon=False, labelcolor="white", loc="upper right")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    fig.savefig(path, dpi=200, bbox_inches="tight", facecolor="#121212")
-    plt.close(fig)
-
-
-if __name__ == "__main__":
-    e1_cells = e1_split_lottery()
-    plot_boundary_map(e1_cells)
-# --- end ---
+    ax.tick_params(labelsize=13)
+    ax.legend(loc="upper right", fontsize=13)
+    if own:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        fig.savefig(path, dpi=200, bbox_inches="tight")
+        plt.close(fig)
 
 
 # ======================================================================= repo-only
@@ -311,7 +314,7 @@ def figures(cells, img):
     for x_, v in enumerate([acc[w, best], acc[w, runner]]):
         ins.text(x_, v + 0.005, fmt(v), ha="center", fontsize=9)
     ins.set_xticks([0, 1], [names[best], names[runner]], fontsize=9)
-    ins.set_ylim(min(acc[w, best], acc[w, runner]) - 0.08, 1.03)
+    ins.set_ylim(0, 1.15)
     ins.set_title("on the worst-case seed", fontsize=9, fontweight="normal")
     ins.set_yticks([])
     ins.spines["left"].set_visible(False)

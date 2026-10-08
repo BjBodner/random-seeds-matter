@@ -16,3 +16,12 @@ __pycache__/
 
 # quick-mode outputs (never committed; real results live in results/)
 out/
+
+# authoring notes kept out of the public repo (Benjy decides at go-public time)
+submission/
+reviews/
+article/REVISION_MEMO.md
+article/tds_guidelines_check.md
+
+# downloaded datasets (Banking77 for E7)
+data/
