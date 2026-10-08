@@ -132,3 +132,24 @@ Predictions:
 - **Falsifier:** if the routers differ by ≥ 5 points, golden-set noise at g = 300 is irrelevant for this pair, and the article says so.
 
 Presentation change (does not affect any prediction): the article now centres on golden-set sizes (100–500 rows). Results for 1,000+ rows move to the "until they don't" section, and the hero becomes E7's g = 300 distribution.
+
+**E7 outcomes (appended 2026-10-09, after the E7 run; the predictions above are unedited).** v1 failure rate 0.143 vs v2 0.088: a **5.5-point gap**. P7.1 **FAILED** (5.5 ≥ 3). P7.2 **FAILED** (worse router ties or wins on 0.1% of 300-query golden sets). P7.3 **FAILED** (McNemar detects on 93.4%). P7.4 **FAILED** (80% power at 205 queries). **The falsifier triggered**: for a 5-point upgrade, a 300-query golden set is enough, and the article says so.
+
+---
+
+## E7b — Small tweaks to the router (ADDED 2026-10-09 after seeing E7, committed before any E7b code exists or runs)
+
+Why: E7's pair turned out to be a large upgrade. Real router updates are usually small tweaks. To avoid choosing a pair after seeing results, all three tweaks below are fixed now and **all three will be reported**, whatever they show.
+
+Design: the same data, golden-set sizes, 1,000 golden sets per size (sampled with replacement) and metrics as E7. Each comparison is **v2 against one tweak of v2**:
+- **t1:** v2 with `LinearSVC(C=0.5)` (more regularization).
+- **t2:** v2 with `LinearSVC(class_weight="balanced")`.
+- **t3:** v2 with char_wb 3–5-grams instead of 2–5.
+
+Seeds come from the `SeedSequence(20261008)` stream (7, 100 + 10·j + k) for tweak j and size index k. "Better" and "worse" are defined by full-test accuracy within each pair.
+
+Predictions:
+- P7b.1 At least 2 of the 3 tweaks are within 1.5 points of v2's full-test accuracy.
+- P7b.2 For every tweak within 1.5 points, the worse router of the pair ties or wins on ≥ 20% of 300-query golden sets.
+- P7b.3 For every tweak within 1.5 points, McNemar detects the difference on ≤ 30% of 300-query golden sets, and 80% power needs ≥ 1,000 queries.
+- **Falsifier:** if all 3 tweaks are ≥ 3 points from v2, the "small tweak" scenario isn't small here, and the article says so.
