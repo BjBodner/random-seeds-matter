@@ -93,7 +93,7 @@ def run(out, img, quick=False):
             for s in range(n_s) for i in range(n_s)]
     pd.DataFrame(rows, columns=["n", "model", "split_seed", "internal_seed", "accuracy"]) \
         .to_csv(os.path.join(out, "e5_decomposition.csv"), index=False)
-    figure(shares, img)
+    redraw(out, img)  # the exploratory close-pair split + the combined figure
 
 
 def extras(res):
@@ -119,27 +119,6 @@ def extras(res):
     return shares
 
 
-def figure(shares, img):
-    from experiments.common import NEUTRAL, OKABE_ITO, dark_style, save_fig
-    plt = dark_style()
-    colors = dict(zip(SHARE_KEYS, [OKABE_ITO["blue"], OKABE_ITO["orange"], OKABE_ITO["sky"], OKABE_ITO["green"],
-                                   OKABE_ITO["purple"], OKABE_ITO["yellow"], NEUTRAL]))
-    dark_text = {"split seed", "internal seed", "split x internal", "residual", "model x split"}
-    fig, ax = plt.subplots(figsize=(11, 3.9))
-    for y_, n in ((1, 300), (0, 3000)):
-        left = 0
-        for k in SHARE_KEYS:
-            v = max(shares[n][k], 0)
-            ax.barh(y_, v, left=left, color=colors[k], edgecolor="#121212", height=0.62, label=k if n == 300 else None)
-            if v >= 0.05:
-                ax.text(left + v / 2, y_, f"{100 * v:.0f}%", ha="center", va="center", fontsize=11, fontweight="bold",
-                        color="#121212" if k in dark_text else "#FFFFFF")
-            left += v
-    ax.set_yticks([1, 0], ["n = 300", "n = 3,000"])
-    ax.set_xlim(0, 1)
-    ax.set_xticks(np.linspace(0, 1, 6), [f"{int(t * 100)}%" for t in np.linspace(0, 1, 6)])
-    ax.set_xlabel("share of total accuracy variance")
-    ax.grid(False)
-    ax.legend(ncol=4, loc="upper center", bbox_to_anchor=(0.5, -0.3), fontsize=10)
-    ax.set_title("Who owns the variance: the model, the split seed, or the internal seed?")
-    save_fig(fig, img, "e5_variance_shares")
+def redraw(out, img):
+    from experiments import e5_exploratory
+    e5_exploratory.run(out, img)

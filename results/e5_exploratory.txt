@@ -1,0 +1,5 @@
+E5 follow-up (exploratory, not pre-registered): RandomForest vs GradBoost only
+n=300: mean accuracy gap (RandomForest - GradBoost) 0.008; model share 0.9%; everything seed-driven 99.1%
+   model 0.9%, split seed 60.3%, internal seed 0.4%, model x split 5.5%, model x internal 0.9%, split x internal 16.0%, residual 16.0%
+n=3000: mean accuracy gap (RandomForest - GradBoost) 0.041; model share 77.8%; everything seed-driven 22.2%
+   model 77.8%, split seed 13.7%, internal seed 0.1%, model x split 2.1%, model x internal 0.1%, split x internal 3.2%, residual 3.0%

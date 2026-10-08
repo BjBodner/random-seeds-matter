@@ -1,0 +1,24 @@
+E5 - variance decomposition
+design: synthetic population; models ['RandomForest', 'MLP', 'GradBoost'] x 30 split seeds x 30 internal seeds = 2700 fits per size; sizes [300, 3000]; MLP uses early_stopping=True
+n=300: RandomForest 0.696, MLP 0.573, GradBoost 0.688; overall accuracy std 0.0764
+   model 54.1%, split seed 9.7%, internal seed 1.8%, model x split 4.6%, model x internal 4.4%, split x internal 8.1%, residual 17.2%
+n=3000: RandomForest 0.840, MLP 0.768, GradBoost 0.799; overall accuracy std 0.0332
+   model 80.8%, split seed 5.7%, internal seed 0.2%, model x split 2.0%, model x internal 0.3%, split x internal 3.6%, residual 7.3%
+
+== n = 300 (90 test rows) ==
+RandomForest  std over all 900 seed pairs 0.040, range 0.589 to 0.833
+MLP           std over all 900 seed pairs 0.069, range 0.333 to 0.756
+GradBoost     std over all 900 seed pairs 0.042, range 0.589 to 0.833
+model share 54.1%; everything seed-driven 45.9%
+split seed incl. its interactions: 22.4%; internal seed incl. its interactions: 14.3%
+
+== n = 3000 (900 test rows) ==
+RandomForest  std over all 900 seed pairs 0.011, range 0.810 to 0.876
+MLP           std over all 900 seed pairs 0.020, range 0.656 to 0.819
+GradBoost     std over all 900 seed pairs 0.012, range 0.766 to 0.837
+model share 80.8%; everything seed-driven 19.2%
+split seed incl. its interactions: 11.3%; internal seed incl. its interactions: 4.1%
+
+== Pre-registered predictions ==
+P5.1 n = 300: model share <= 30% (seed-driven >= 70%): observed 54.1% -> FAILED
+P5.2 n = 3000: model share >= 50%: observed 80.8% -> HELD

@@ -48,7 +48,17 @@ def main():
     p.add_argument("--quick", action="store_true")
     p.add_argument("--only", default=",".join(EXPERIMENTS), help="comma list, e.g. e1,e3")
     p.add_argument("--n-jobs", type=int, default=int(os.environ.get("N_JOBS", -1)))
+    p.add_argument("--redraw", action="store_true", help="redraw figures from results/*.csv without refitting (e1, e5)")
     a = p.parse_args()
+    if a.redraw:
+        from experiments.common import out_dirs
+        out, img = out_dirs(a.quick)
+        for key in [k.strip() for k in a.only.split(",") if k.strip()]:
+            mod = importlib.import_module(EXPERIMENTS[key])
+            if hasattr(mod, "redraw"):
+                print(f"redrawing {key}")
+                mod.redraw(out, img)
+        return
     os.environ["N_JOBS"] = str(a.n_jobs)        # read by experiments.common at import time
     os.environ.setdefault("LOKY_MAX_CPU_COUNT", str(os.cpu_count()))
     from experiments.common import out_dirs

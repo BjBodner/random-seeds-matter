@@ -1,0 +1,19 @@
+E4 - k-means restarts
+design: make_blobs 1500 points, 8 overlapping clusters (cluster_std 1.5); 300 seeds x n_init {1, 10} x init {k-means++, random}; ARI vs generating labels
+k-means++ n_init=1   ARI mean 0.440  std 0.012  min 0.384  bad local optimum 52.0%
+k-means++ n_init=10  ARI mean 0.443  std 0.002  min 0.437  bad local optimum 0.7%
+random    n_init=1   ARI mean 0.442  std 0.009  min 0.394  bad local optimum 49.7%
+random    n_init=10  ARI mean 0.444  std 0.002  min 0.437  bad local optimum 0.0%
+k-means++: n_init=10 cuts ARI variance 24.4x (95% CI 17.0 to 34.4)
+random: n_init=10 cuts ARI variance 20.6x (95% CI 14.3 to 30.3)
+
+lowest inertia over all 1200 runs: 4091.4
+k-means++ n_init=1: ARI max 0.457, ARI variance 1.38e-04
+k-means++ n_init=10: ARI max 0.456, ARI variance 5.66e-06
+random n_init=1: ARI max 0.459, ARI variance 8.57e-05
+random n_init=10: ARI max 0.450, ARI variance 4.16e-06
+k-means++, n_init=1: unluckiest seed 2975026592 ARI 0.384; luckiest seed 2677593521 ARI 0.457 (hand-picked extremes, shown as such)
+
+== Pre-registered predictions ==
+P4.1 n_init=10 cuts ARI variance >= 10x (k-means++): observed 24.4x -> HELD
+P4.2 bad-optimum share: n_init=1 >= 20% (observed 52.0%), n_init=10 <= 5% (observed 0.7%) -> HELD

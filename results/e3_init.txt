@@ -1,0 +1,21 @@
+E3 - the init lottery, audited
+design: breast cancer, one fixed stratified split (398 train / 171 test), 200 MLPClassifier init seeds per condition, default architecture (100 ReLU units, Adam)
+A raw, 200 iters      test accuracy 0.877 to 0.947 (range 0.070, std 0.012); converged, good minimum: 51, converged, poor minimum: 2, not converged: 147
+B raw, 1000 iters     test accuracy 0.877 to 0.947 (range 0.070, std 0.011); converged, good minimum: 198, converged, poor minimum: 2
+C scaled, 200 iters   test accuracy 0.965 to 0.988 (range 0.023, std 0.005); not converged: 200
+D scaled, 1000 iters  test accuracy 0.965 to 0.988 (range 0.023, std 0.004); converged, good minimum: 200
+condition A: 0 runs below 0.80 test accuracy; 0 of them flagged 'not converged'
+
+condition              mean   median_iters  not_conv  poor_min  good_min
+A raw, 200 iters       0.919           200       147         2        51
+B raw, 1000 iters      0.927           257         0         2       198
+C scaled, 200 iters    0.975           200       200         0         0
+D scaled, 1000 iters   0.972           269         0         0       200
+condition A, not converged: 147 runs (73.5%), test accuracy mean 0.919, min 0.883, max 0.947, median final loss 0.144, median iterations 200
+condition A, converged, poor minimum: 2 runs (1.0%), test accuracy mean 0.886, min 0.883, max 0.889, median final loss 0.423, median iterations 22
+condition A, converged, good minimum: 51 runs (25.5%), test accuracy mean 0.920, min 0.877, max 0.942, median final loss 0.145, median iterations 167
+accuracy range A / D = 0.070 / 0.023 = 3.0x; std A / D = 3.0x
+
+== Pre-registered predictions ==
+P3.1 >= 50% of condition-A runs below 0.80 accuracy are 'not converged': observed n/a (no runs below 0.80) -> FAILED
+P3.2 accuracy range shrinks >= 5x from A to D: observed 3.0x -> FAILED

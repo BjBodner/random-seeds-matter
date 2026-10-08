@@ -1,0 +1,15 @@
+E6 - comparing two models honestly
+setting: breast cancer, n = 150 (E1 opening scene, subsample 0); the top pair over the E1 split seeds; the cherry-picked seed is E1's deliberate worst case
+accuracy(LogReg) - accuracy(SVC):
+  single cherry-picked split  -0.0667  (one number, no error bar)
+  10x5 CV, naive t-test       +0.0167  95% CI +0.0100 to +0.0234  p = 0.000
+  10x5 CV, corrected t-test   +0.0167  95% CI -0.0079 to +0.0413  p = 0.180
+  5x2 CV t-test               +0.0400  95% CI -0.0467 to +0.1267  p = 0.289
+
+10x5 CV: 50 folds of 120 train / 30 test rows; fold std 0.0236; folds where the runner-up wins: 1, ties: 27, the better-on-average model wins: 22
+the corrected test's standard error is sqrt(1 + k * n_test / n_train) = 3.67x the naive one
+naive p < 0.001 (exact 7.7e-06); corrected p = 0.180
+
+== Pre-registered predictions ==
+P6.1 the single-seed winner is not significant under the corrected test: corrected p = 0.180, estimate 0.0167 -> HELD
+P6.2 the corrected estimate points toward the better-on-average model: estimate 0.0167 -> HELD

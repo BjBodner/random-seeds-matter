@@ -1,0 +1,45 @@
+E2 - imbalance: stratify=y versus stratify=None
+design: n in [400, 1000, 4000], about 5% positives, 300 split seeds per setting (same seeds for both), scaled LogisticRegression, test_size 0.3
+n=400: 29 positives; unstratified k = 8.66 +/- 2.46, stratified k = 9 +/- 0.00
+   recall std: unstratified 0.080, stratified 0.075, ratio 0.93 (95% CI 0.83 to 1.04)
+   binomial floor sqrt(r(1-r)/k) = 0.083 at r = 0.066, k = 9; observed / floor = 0.91
+n=1000: 57 positives; unstratified k = 17.25 +/- 3.26, stratified k = 17 +/- 0.00
+   recall std: unstratified 0.087, stratified 0.086, ratio 0.99 (95% CI 0.89 to 1.10)
+   binomial floor sqrt(r(1-r)/k) = 0.099 at r = 0.213, k = 17; observed / floor = 0.87
+n=4000: 223 positives; unstratified k = 67.24 +/- 6.80, stratified k = 67 +/- 0.00
+   recall std: unstratified 0.054, stratified 0.054, ratio 1.00 (95% CI 0.89 to 1.14)
+   binomial floor sqrt(r(1-r)/k) = 0.060 at r = 0.610, k = 67; observed / floor = 0.90
+
+unstratified runs with k = 0 (recall undefined, counted not dropped): n=400: 0, n=1000: 0, n=4000: 0
+unstratified runs grouped by test positive count k (groups with >= 15 runs):
+n     k    runs  recall_std  floor
+400   5    17         0.094  0.105
+400   6    25         0.083  0.102
+400   7    31         0.089  0.102
+400   8    58         0.075  0.083
+400   9    57         0.081  0.089
+400   10   37         0.073  0.068
+400   11   25         0.056  0.075
+400   12   19         0.074  0.067
+1000  14   22         0.095  0.114
+1000  15   26         0.089  0.110
+1000  16   33         0.085  0.104
+1000  17   50         0.084  0.094
+1000  18   37         0.084  0.098
+1000  19   24         0.062  0.086
+1000  20   27         0.086  0.090
+1000  21   15         0.068  0.085
+4000  61   16         0.038  0.062
+4000  63   15         0.063  0.062
+4000  64   15         0.074  0.061
+4000  65   21         0.043  0.060
+4000  67   19         0.051  0.060
+4000  68   15         0.047  0.059
+4000  69   20         0.052  0.058
+4000  72   16         0.037  0.057
+4000  73   18         0.051  0.057
+
+== Pre-registered predictions ==
+P2.1 stratified k std = 0 at every n: HELD
+P2.2 recall std ratio within [0.85, 1.05] at every n: HELD (n=400: 0.93, n=1000: 0.99, n=4000: 1.00)
+P2.3 stratified recall std within +/-25% of the binomial floor at every n: HELD (n=400: 0.91x, n=1000: 0.87x, n=4000: 0.90x)

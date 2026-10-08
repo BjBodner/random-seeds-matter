@@ -98,6 +98,9 @@ def extras(rows, d):
     print(f"the corrected test's standard error is sqrt(1 + k * n_test / n_train) = {fmt(np.sqrt(1 + k * 30 / 120), 2)}x"
           " the naive one")
     corr = rows["10x5 CV, corrected t-test"]
+    naive = rows["10x5 CV, naive t-test"]
+    print(f"naive p {'< 0.001' if naive[3] < 0.001 else '= ' + fmt(naive[3], 3)} (exact {naive[3]:.1e});"
+          f" corrected p = {fmt(corr[3], 3)}")
     print("")
     print("== Pre-registered predictions ==")
     print(f"P6.1 the single-seed winner is not significant under the corrected test: corrected p = {fmt(corr[3], 3)},"

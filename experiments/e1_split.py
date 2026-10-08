@@ -156,6 +156,24 @@ def run(out, img, quick=False):
     figures(cells, img)
 
 
+def load_cells(out):
+    """Rebuild the accuracy matrices from results/e1_split.csv (no refitting)."""
+    import pandas as pd
+    df = pd.read_csv(os.path.join(out, "e1_split.csv"))
+    cells = {}
+    for (d, n, j), g in df.groupby(["dataset", "n", "subsample"], sort=False):
+        order = g.split_seed.drop_duplicates()
+        m = g.pivot(index="split_seed", columns="model", values="accuracy").reindex(order)
+        cells[d, int(n), int(j)] = m[list(MODELS)].to_numpy()
+    return cells
+
+
+def redraw(out, img):
+    cells = load_cells(out)
+    plot_boundary_map(cells, os.path.join(img, "e1b_boundary_map.png"))
+    figures(cells, img)
+
+
 def crossing(ns, rs):
     """First n where the median R drops below 1, log-interpolated between grid points."""
     for (n0, r0), (n1, r1) in zip(zip(ns, rs), zip(ns[1:], rs[1:])):
@@ -287,7 +305,7 @@ def figures(cells, img):
     ax.set_xlabel(f"accuracy({names[runner]}) - accuracy({names[best]}) on the same split")
     ax.set_ylabel("number of split seeds")
     ax.set_title(f"{names[runner]} vs {names[best]}: the cherry-pick inside its distribution")
-    ins = ax.inset_axes([0.03, 0.5, 0.25, 0.4])
+    ins = ax.inset_axes([0.05, 0.5, 0.24, 0.38])
     ins.bar([0, 1], [acc[w, best], acc[w, runner]],
             color=[MODEL_COLORS[names[best]], MODEL_COLORS[names[runner]]], width=0.6)
     for x_, v in enumerate([acc[w, best], acc[w, runner]]):
@@ -295,6 +313,8 @@ def figures(cells, img):
     ins.set_xticks([0, 1], [names[best], names[runner]], fontsize=9)
     ins.set_ylim(min(acc[w, best], acc[w, runner]) - 0.08, 1.03)
     ins.set_title("on the worst-case seed", fontsize=9, fontweight="normal")
+    ins.set_yticks([])
+    ins.spines["left"].set_visible(False)
     ins.tick_params(labelsize=8)
     ins.grid(False)
     save_fig(fig, img, "e1c_worst_case")

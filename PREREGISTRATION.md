@@ -76,3 +76,32 @@ Design: the E1 opening setting (breast cancer, n = 150, subsample 0). The top pa
 - 95% CIs by bootstrap over seeds (2,000 resamples).
 - No seeds excluded post hoc. Failed or non-converged fits are counted as runs and reported.
 - If a design parameter has to change after this commit (for example a runtime problem), the change and its reason go into `article/DECISIONS.md` and the article.
+
+---
+
+## Outcomes (appended 2026-10-08 after the full run; predictions above unedited)
+
+Source: `results/*.txt`, full run, 83.6 min with 12 workers (`results/env.txt`). **11 of 15 held.**
+
+| Prediction | Outcome | Observed |
+|---|---|---|
+| P1.1 median R at n = 150 ≥ 2.0 | HELD | 2.42 |
+| P1.2a breast cancer R > 1 at every n | HELD | smallest median R 1.48 (n = 569) |
+| P1.2b synthetic crosses 1 between n = 250 and 1,000 | HELD | between 250 and 500; log-interpolated n = 300 |
+| P1.3 flip rate at n = 150 (subsample 0) ≥ 20% | **FAILED** | 8.0%. Subsample 0 was the tamest of the 5; the per-subsample rates were 8.0% to 30.0% |
+| Falsifier: R < 1 everywhere | not triggered | — |
+| P2.1 stratified k std = 0 | HELD | 0.00 at every n |
+| P2.2 recall std ratio in [0.85, 1.05] | HELD | 0.93, 0.99, 1.00 |
+| P2.3 within ±25% of the binomial floor | HELD | 0.91x, 0.87x, 0.90x |
+| P3.1 ≥ 50% of runs below 0.80 are not converged | **FAILED** | no run fell below 0.80 (minimum 0.877) |
+| P3.2 range shrinks ≥ 5x from A to D | **FAILED** | 3.0x |
+| P4.1 n_init = 10 cuts ARI variance ≥ 10x | HELD | 24.4x |
+| P4.2 bad optimum ≥ 20% (n_init = 1), ≤ 5% (n_init = 10) | HELD | 52.0% and 0.7% |
+| P5.1 n = 300: model share ≤ 30% | **FAILED** | 54.1%, driven by an MLP that trailed by about 0.12 |
+| P5.2 n = 3,000: model share ≥ 50% | HELD | 80.8% |
+| P6.1 single-seed winner not significant (corrected test) | HELD | p = 0.180 |
+| P6.2 corrected estimate favours the better-on-average model | HELD | +0.0167 |
+
+**Not pre-registered (labelled exploratory):** `experiments/e5_exploratory.py` decomposes only the two close models (RandomForest and GradBoost) from E5's saved fits. Model share: 0.9% at n = 300, 77.8% at n = 3,000.
+
+**Deviation:** E5's MLP used `early_stopping=True`, a runtime decision made before any study run (see `article/DECISIONS.md`).
