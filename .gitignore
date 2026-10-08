@@ -1,0 +1,18 @@
+# private authoring kit — never publish
+.claude/
+context/
+templates/
+SPEC.md
+CLAUDE.md
+START_HERE.md
+
+# build + env
+build/
+logs/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# quick-mode outputs (never committed; real results live in results/)
+out/
