@@ -21,14 +21,21 @@ from sklearn.svm import LinearSVC
 
 BANKING77 = "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/master/banking_data/{}.csv"
 GOLDEN_SIZES = [100, 200, 300, 500, 1000, 3000]
+def v2_with(C=1.0, class_weight=None, char=(2, 5)):
+    """Router v2 (word + char TF-IDF + LinearSVC), optionally with one small tweak."""
+    return lambda: make_pipeline(make_union(
+        TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True),
+        TfidfVectorizer(analyzer="char_wb", ngram_range=char, sublinear_tf=True)),
+        LinearSVC(C=C, class_weight=class_weight, random_state=0))
+
+
 ROUTERS = {  # two versions of an intent router: 77 routes, deterministic once trained
     "v1 (word TF-IDF + LogReg)": lambda: make_pipeline(
         TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True), LogisticRegression(max_iter=2000)),
-    "v2 (word+char TF-IDF + LinearSVC)": lambda: make_pipeline(make_union(
-        TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True),
-        TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), sublinear_tf=True)),
-        LinearSVC(C=1.0, random_state=0)),
+    "v2 (word+char TF-IDF + LinearSVC)": v2_with(),
 }
+TWEAKS = {"t1: C=0.5": v2_with(C=0.5), "t2: balanced classes": v2_with(class_weight="balanced"),
+          "t3: char 3-5-grams": v2_with(char=(3, 5))}
 
 
 def load_banking77(split):
@@ -51,6 +58,13 @@ def golden_set_lottery(better, worse, g, seed_list):
     return np.array(rows)                            # failure(better), failure(worse), detected
 
 
+def n_for_80_power(better, worse):
+    """Golden-set size at which McNemar's test catches this gap 80% of the time."""
+    p10, p01 = np.mean(better & ~worse), np.mean(~better & worse)
+    z = stats.norm.ppf(0.975) * np.sqrt(p10 + p01) + stats.norm.ppf(0.8) * np.sqrt(p10 + p01 - (p10 - p01) ** 2)
+    return int(np.ceil((z / (p10 - p01)) ** 2)) if p10 != p01 else float("inf")
+
+
 def e7_router_lottery(quick=QUICK):
     train, test = load_banking77("train"), load_banking77("test")
     correct = {}
@@ -68,27 +82,54 @@ def e7_router_lottery(quick=QUICK):
         diff = r[:, 1] - r[:, 0]                    # > 0: the golden set picks the right router
         print(f"g={g:<5} worse router wins {np.mean(diff < 0):.1%}, ties {np.mean(diff == 0):.1%}, "
               f"McNemar detects {r[:, 2].mean():.1%}; measured gap {diff.mean():.3f} +/- {diff.std(ddof=1):.3f}")
-    z = stats.norm.ppf(0.975) * np.sqrt(p10 + p01) + stats.norm.ppf(0.8) * np.sqrt(p10 + p01 - (p10 - p01) ** 2)
-    print(f"golden-set size for 80% McNemar power: {int(np.ceil((z / (p10 - p01)) ** 2))} queries")
+    print(f"golden-set size for 80% McNemar power: {n_for_80_power(better, worse)} queries")
     return correct
+
+
+def e7b_router_tweaks(correct_v2, quick=QUICK):
+    """Small tweaks to router v2, each judged against v2 on golden sets of every size."""
+    train, test = load_banking77("train"), load_banking77("test")
+    out = {}
+    for j, (name, make) in enumerate(TWEAKS.items()):
+        c = (make().fit(train.text, train.category).predict(test.text) == test.category).to_numpy()
+        better, worse = (correct_v2, c) if correct_v2.mean() >= c.mean() else (c, correct_v2)
+        out[name] = {g: golden_set_lottery(better, worse, g, seeds(7, 100 + 10 * j + k, 200 if quick else 1000))
+                     for k, g in enumerate(GOLDEN_SIZES)}
+        r = out[name][300]
+        diff = r[:, 1] - r[:, 0]
+        print(f"{name}: failure rate {1 - c.mean():.3f} vs v2 {1 - correct_v2.mean():.3f} "
+              f"(gap {better.mean() - worse.mean():.3f}); at g=300 worse router wins {np.mean(diff < 0):.1%}, "
+              f"ties {np.mean(diff == 0):.1%}, McNemar detects {r[:, 2].mean():.1%}; "
+              f"80% power needs {n_for_80_power(better, worse)} queries")
+    return out
 
 
 if __name__ == "__main__":
     e7 = e7_router_lottery()
+    e7b = e7b_router_tweaks(e7["v2 (word+char TF-IDF + LinearSVC)"])
 # --- end ---
 
 
 # ======================================================================= repo-only
+V2 = "v2 (word+char TF-IDF + LinearSVC)"
+
+
 def run(out, img, quick=False):
     from experiments.common import tee
+    n_sets = 200 if quick else 1000
     with tee(os.path.join(out, "e7_router.txt")):
         print("E7 - the golden-set lottery: two intent routers on Banking77 (77 routes, CC BY 4.0)")
         print(f"design: routers trained once on the 10,003-query train split; golden sets of {GOLDEN_SIZES} queries "
-              f"drawn with replacement from the test split; {200 if quick else 1000} golden sets per size")
+              f"drawn with replacement from the test split; {n_sets} golden sets per size")
         correct = e7_router_lottery(quick)
         rows = extras(correct, quick)
+    with tee(os.path.join(out, "e7b_tweaks.txt")):
+        print("E7b - small tweaks to router v2 (pre-registered after E7, before running), each vs v2")
+        print(f"design: as E7; {n_sets} golden sets per size; seeds stream (7, 100 + 10*j + k)")
+        tweaks = e7b_router_tweaks(correct[V2], quick)
+        rows_b = extras_b(tweaks, quick)
     pd.DataFrame(correct).to_csv(os.path.join(out, "e7_router_correct.csv"), index=False)
-    pd.DataFrame(rows).to_csv(os.path.join(out, "e7_router.csv"), index=False)
+    pd.DataFrame(rows + rows_b).to_csv(os.path.join(out, "e7_router.csv"), index=False)
     figures(out, img)
 
 
@@ -98,25 +139,26 @@ def extras(correct, quick):
     better, worse = correct[better_name], correct[worse_name]
     print("")
     print(f"better router (on all test queries): {better_name}; worse: {worse_name}")
-    print(f"accuracy {fmt(better.mean())} vs {fmt(worse.mean())}; gap {pct(better.mean() - worse.mean())} points of accuracy")
+    print(f"accuracy {fmt(better.mean())} vs {fmt(worse.mean())}; "
+          f"gap {100 * (better.mean() - worse.mean()):.1f} points of accuracy")
     rows, summary = [], {}
     for k, g in enumerate(GOLDEN_SIZES):
         seed_list = seeds(7, k, 200 if quick else 1000)
         r = golden_set_lottery(better, worse, g, seed_list)
         diff = r[:, 1] - r[:, 0]
         summary[g] = dict(wrong=np.mean(diff < 0), ties=np.mean(diff == 0), detect=r[:, 2].mean())
-        rows += [dict(g=g, seed=s, fail_better=a, fail_worse=b, detected=bool(d)) for s, (a, b, d) in zip(seed_list, r)]
+        rows += [dict(pair="v1 vs v2", g=g, seed=s, fail_better=a, fail_worse=b, detected=bool(d))
+                 for s, (a, b, d) in zip(seed_list, r)]
         print(f"g={g}: wrong or tied {pct(summary[g]['wrong'] + summary[g]['ties'])}; "
               f"measured failure-rate range {fmt(diff.min())} to {fmt(diff.max())}")
-    p10, p01 = np.mean(better & ~worse), np.mean(~better & worse)
-    z = 1.959964 * np.sqrt(p10 + p01) + 0.841621 * np.sqrt(p10 + p01 - (p10 - p01) ** 2)
-    need = int(np.ceil((z / (p10 - p01)) ** 2))
+    need = n_for_80_power(better, worse)
     gap_pts = 100 * (better.mean() - worse.mean())
     print("")
     print("== Pre-registered predictions ==")
     print(f"P7.1 full-test accuracy gap < 3 points: observed {gap_pts:.1f} -> {verdict(gap_pts < 3)}")
     w300 = summary[300]["wrong"] + summary[300]["ties"]
-    print(f"P7.2 g = 300: worse router ties or wins on >= 15% of golden sets: observed {pct(w300)} -> {verdict(w300 >= 0.15)}")
+    print(f"P7.2 g = 300: worse router ties or wins on >= 15% of golden sets: observed {pct(w300)} -> "
+          f"{verdict(w300 >= 0.15)}")
     print(f"P7.3 g = 300: McNemar detects on <= 60% of golden sets: observed {pct(summary[300]['detect'])} -> "
           f"{verdict(summary[300]['detect'] <= 0.60)}")
     print(f"P7.4 size for 80% power >= 500: observed {need} -> {verdict(need >= 500)}")
@@ -124,64 +166,104 @@ def extras(correct, quick):
     return rows
 
 
+def extras_b(tweaks, quick):
+    from experiments.common import pct, verdict
+    train, test = load_banking77("train"), load_banking77("test")
+    v2 = (v2_with()().fit(train.text, train.category).predict(test.text) == test.category).to_numpy()
+    rows, info = [], {}
+    print("")
+    print("tweak                  g      worse wins  ties    McNemar detects")
+    for j, (name, by_g) in enumerate(tweaks.items()):
+        c = (TWEAKS[name]().fit(train.text, train.category).predict(test.text) == test.category).to_numpy()
+        better, worse = (v2, c) if v2.mean() >= c.mean() else (c, v2)
+        info[name] = dict(gap=100 * (better.mean() - worse.mean()), need=n_for_80_power(better, worse),
+                          close300=np.mean(by_g[300][:, 1] - by_g[300][:, 0] <= 0), detect300=by_g[300][:, 2].mean())
+        for k, g in enumerate(GOLDEN_SIZES):
+            r = by_g[g]
+            diff = r[:, 1] - r[:, 0]
+            seed_list = seeds(7, 100 + 10 * j + k, len(r))
+            rows += [dict(pair=name, g=g, seed=s, fail_better=a, fail_worse=b, detected=bool(d))
+                     for s, (a, b, d) in zip(seed_list, r)]
+            print(f"{name:<22} {g:<6} {pct(np.mean(diff < 0)):>10}  {pct(np.mean(diff == 0)):>6}  {pct(r[:, 2].mean()):>15}")
+    print("")
+    print("== Pre-registered predictions (E7b) ==")
+    near = [n for n, v in info.items() if v["gap"] < 1.5]
+    print(f"P7b.1 >= 2 of 3 tweaks within 1.5 points of v2: {len(near)} of 3 ("
+          + ", ".join(f"{n}: {v['gap']:.1f} pts" for n, v in info.items()) + f") -> {verdict(len(near) >= 2)}")
+    if near:
+        ok2 = all(info[n]["close300"] >= 0.20 for n in near)
+        print(f"P7b.2 for tweaks within 1.5 points, worse ties or wins on >= 20% at g = 300: "
+              + ", ".join(f"{n}: {pct(info[n]['close300'])}" for n in near) + f" -> {verdict(ok2)}")
+        ok3 = all(info[n]["detect300"] <= 0.30 and info[n]["need"] >= 1000 for n in near)
+        print(f"P7b.3 for those, McNemar detects <= 30% at g = 300 and 80% power needs >= 1,000: "
+              + ", ".join(f"{n}: {pct(info[n]['detect300'])}, {info[n]['need']} queries" for n in near)
+              + f" -> {verdict(ok3)}")
+    else:
+        print("P7b.2 and P7b.3: not applicable (no tweak within 1.5 points)")
+    far = all(v["gap"] >= 3 for v in info.values())
+    print(f"Falsifier (all 3 tweaks >= 3 points from v2): {'TRIGGERED' if far else 'not triggered'}")
+    return rows
+
+
 def figures(out, img):
+    from matplotlib.ticker import FuncFormatter, NullFormatter
     from experiments.common import BG, NEUTRAL, OKABE_ITO, dark_style, save_fig
     from experiments.e1_split import load_cells, plot_boundary_map
     plt = dark_style()
     df = pd.read_csv(os.path.join(out, "e7_router.csv"))
-    correct = pd.read_csv(os.path.join(out, "e7_router_correct.csv"))
-    worse_name, better_name = sorted(correct.columns, key=lambda k: correct[k].mean())
-    true_gap = correct[better_name].mean() - correct[worse_name].mean()
+    pairs = list(dict.fromkeys(df.pair))           # v1 vs v2 first, then the three tweaks
+    titles = {p: ("v2 vs v1: a real upgrade" if p == "v1 vs v2" else f"v2 vs {p}") for p in pairs}
 
-    # hero: 1,000 golden sets of 300 queries
-    d = df[df.g == 300]
-    diff = 100 * (d.fail_worse - d.fail_better)
+    # hero: every pre-registered comparison on 300-query golden sets (no pair is hand-picked)
+    fig, axes = plt.subplots(len(pairs), 1, figsize=(10, 2.1 * len(pairs) + 1.2), sharex=True)
     step = 100 / 300
-    edges = np.arange(np.floor(diff.min()) - step / 2, diff.max() + step, step)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    counts, _, patches = ax.hist(diff, bins=edges, color=OKABE_ITO["sky"], edgecolor=BG, alpha=0.9)
-    for p, left in zip(patches, edges[:-1]):
-        if left + step / 2 < 0:
-            p.set_facecolor(OKABE_ITO["orange"])
-        elif abs(left + step / 2) < 1e-9:
-            p.set_facecolor(NEUTRAL)
-    ax.axvline(100 * true_gap, color="#FFFFFF", ls="--", lw=1.8)
-    ax.text(100 * true_gap, counts.max() * 1.02, f"  true gap on all\n  3,080 queries: {100 * true_gap:.1f} pts",
-            fontsize=13, va="bottom", ha="left")
-    wrong = np.mean(diff < 0)
-    tie = np.mean(diff == 0)
-    ax.text(0.02, 0.97, f"worse router wins\non {100 * wrong:.1f}% of golden sets", transform=ax.transAxes, va="top",
-            fontsize=17, fontweight="bold", color=OKABE_ITO["orange"])
-    ax.text(0.02, 0.76, f"tie on {100 * tie:.1f}%", transform=ax.transAxes, va="top", fontsize=13, color=NEUTRAL)
-    ax.set_xlabel("measured improvement of the better router (failure-rate points) on a 300-query golden set", fontsize=13)
-    ax.set_ylabel("number of golden sets (of 1,000)", fontsize=13)
-    ax.set_ylim(0, counts.max() * 1.25)
-    ax.tick_params(labelsize=12)
+    d300 = df[df.g == 300]
+    span = 100 * (d300.fail_worse - d300.fail_better)
+    edges = np.arange(np.floor(span.min()) - 1 - step / 2, np.ceil(span.max()) + 1 + step, step)
+    for ax, p in zip(axes, pairs):
+        diff = 100 * (d300[d300.pair == p].fail_worse - d300[d300.pair == p].fail_better)
+        counts, _, patches = ax.hist(diff, bins=edges, color=OKABE_ITO["sky"], edgecolor=BG)
+        for patch, left in zip(patches, edges[:-1]):
+            mid = left + step / 2
+            if mid < -1e-9:
+                patch.set_facecolor(OKABE_ITO["orange"])
+            elif abs(mid) < 1e-9:
+                patch.set_facecolor(NEUTRAL)
+        ax.axvline(0, color="#FFFFFF", lw=1.0, ls=":")
+        wrong, tie = np.mean(diff < 0), np.mean(diff == 0)
+        ax.text(0.01, 0.92, titles[p], transform=ax.transAxes, va="top", fontsize=13, fontweight="bold")
+        ax.text(0.99, 0.92, f"worse router wins {100 * wrong:.1f}%\nties {100 * tie:.1f}%", transform=ax.transAxes,
+                va="top", ha="right", fontsize=13, color=OKABE_ITO["orange"], fontweight="bold")
+        ax.set_yticks([])
+        ax.grid(axis="y", visible=False)
+        ax.spines["left"].set_visible(False)
+    axes[-1].set_xlabel("measured improvement of the truly better router on one 300-query golden set "
+                        "(failure-rate points)", fontsize=12)
+    axes[-1].tick_params(labelsize=12)
+    fig.tight_layout()
     save_fig(fig, img, "e7a_golden_set_lottery")
 
     # expansion: when does the model take back control?
-    sizes = sorted(df.g.unique())
-    agg = df.assign(diff=df.fail_worse - df.fail_better).groupby("g")
-    wrong = agg["diff"].apply(lambda x: np.mean(x < 0))
-    ties = agg["diff"].apply(lambda x: np.mean(x == 0))
-    detect = agg["detected"].mean()
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.6))
     plot_boundary_map(load_cells(out), ax=a1)
     a1.set_title("Training-set size: R(n) on the E1 datasets")
-    a2.plot(sizes, 100 * (wrong + ties), "o-", color=OKABE_ITO["orange"], lw=2.6, ms=7, label="worse router wins or ties")
-    a2.plot(sizes, 100 * detect, "s-", color=OKABE_ITO["sky"], lw=2.6, ms=7, label="McNemar detects the better one")
+    marks = ["o", "s", "D", "^"]
+    cols = [OKABE_ITO["blue"], OKABE_ITO["orange"], OKABE_ITO["purple"], OKABE_ITO["green"]]
+    for p, m, c in zip(pairs, marks, cols):
+        sub = df[df.pair == p]
+        wrong_or_tie = (sub.fail_worse - sub.fail_better <= 0).groupby(sub.g).mean()
+        a2.plot(wrong_or_tie.index, 100 * wrong_or_tie.values, marker=m, color=c, lw=2.4, ms=7, label=titles[p])
     a2.axvspan(100, 500, color="#FFFFFF", alpha=0.06, lw=0)
-    a2.text(110, 96, "typical golden sets", fontsize=11, color=NEUTRAL, va="top")
+    a2.text(110, 97, "typical golden sets", fontsize=11, color=NEUTRAL, va="top")
     a2.set_xscale("log")
-    from matplotlib.ticker import FuncFormatter, NullFormatter
     a2.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}"))
     a2.xaxis.set_minor_formatter(NullFormatter())
-    a2.set_xticks(sizes)
+    a2.set_xticks(GOLDEN_SIZES)
     a2.set_ylim(0, 100)
     a2.set_xlabel("golden-set size (queries, log scale)")
-    a2.set_ylabel("% of 1,000 golden sets")
+    a2.set_ylabel("% of golden sets: worse router wins or ties")
     a2.set_title("Golden-set size: the E7 routers")
-    a2.legend(loc="center right", fontsize=11)
+    a2.legend(loc="upper right", fontsize=10)
     fig.tight_layout()
     save_fig(fig, img, "e7b_until_they_dont")
 
