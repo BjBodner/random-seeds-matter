@@ -231,8 +231,8 @@ def figures(out, img):
                 patch.set_facecolor(NEUTRAL)
         ax.axvline(0, color="#FFFFFF", lw=1.0, ls=":")
         wrong, tie = np.mean(diff < 0), np.mean(diff == 0)
-        ax.text(0.01, 0.92, titles[p], transform=ax.transAxes, va="top", fontsize=13, fontweight="bold")
-        ax.text(0.99, 0.92, f"worse router wins {100 * wrong:.1f}%\nties {100 * tie:.1f}%", transform=ax.transAxes,
+        ax.text(0.99, 0.94, titles[p], transform=ax.transAxes, va="top", ha="right", fontsize=13, fontweight="bold")
+        ax.text(0.99, 0.64, f"worse router wins {100 * wrong:.1f}%, ties {100 * tie:.1f}%", transform=ax.transAxes,
                 va="top", ha="right", fontsize=13, color=OKABE_ITO["orange"], fontweight="bold")
         ax.set_yticks([])
         ax.grid(axis="y", visible=False)
@@ -245,7 +245,7 @@ def figures(out, img):
 
     # expansion: when does the model take back control?
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.6))
-    plot_boundary_map(load_cells(out), ax=a1)
+    plot_boundary_map(load_cells(out), ax=a1, legend_loc="center right")
     a1.set_title("Training-set size: R(n) on the E1 datasets")
     marks = ["o", "s", "D", "^"]
     cols = [OKABE_ITO["blue"], OKABE_ITO["orange"], OKABE_ITO["purple"], OKABE_ITO["green"]]

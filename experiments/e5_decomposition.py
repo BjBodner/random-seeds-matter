@@ -69,6 +69,13 @@ def e5_decomposition(quick=QUICK):
 
 if __name__ == "__main__":
     e5 = e5_decomposition()
+    for n, A in e5.items():               # exploratory, not pre-registered: the two close models
+        pair = A[[0, 2]]                  # RandomForest and GradBoost
+        sh = variance_shares(pair)
+        print(f"n={n}: mean accuracy gap (RandomForest - GradBoost) {pair[0].mean() - pair[1].mean():.3f}; "
+              f"model share {sh['model']:.1%}; everything seed-driven {1 - sh['model']:.1%}")
+        print(f"   can change the winner (model x split + model x internal + residual): "
+              f"{sh['model x split'] + sh['model x internal'] + sh['residual']:.1%}")
 # --- end ---
 
 

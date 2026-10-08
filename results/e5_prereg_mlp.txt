@@ -1,0 +1,4 @@
+E5 robustness check: n = 300 with the MLP exactly as pre-registered (max_iter=500, no early stopping)
+n=300: RandomForest 0.696, MLP (pre-registered, no early stopping) 0.700, GradBoost 0.688
+   model 1.4%, split seed 41.9%, internal seed 0.3%, model x split 25.2%, model x internal 1.0%, split x internal 10.0%, residual 20.2%
+P5.1 under the exact pre-registered spec (model share <= 30%): observed 1.4% -> HELD

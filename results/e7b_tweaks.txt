@@ -1,0 +1,31 @@
+E7b - small tweaks to router v2 (pre-registered after E7, before running), each vs v2
+design: as E7; 1000 golden sets per size; seeds stream (7, 100 + 10*j + k)
+t1: C=0.5: failure rate 0.087 vs v2 0.088 (gap 0.002); at g=300 worse router wins 25.7%, ties 25.5%, McNemar detects 0.1%; 80% power needs 22239 queries
+t2: balanced classes: failure rate 0.086 vs v2 0.088 (gap 0.002); at g=300 worse router wins 13.6%, ties 34.2%, McNemar detects 0.0%; 80% power needs 9399 queries
+t3: char 3-5-grams: failure rate 0.090 vs v2 0.088 (gap 0.002); at g=300 worse router wins 14.9%, ties 36.2%, McNemar detects 0.0%; 80% power needs 9399 queries
+
+tweak                  g      worse wins  ties    McNemar detects
+t1: C=0.5              100         18.9%   52.4%             0.0%
+t1: C=0.5              200         21.4%   37.2%             0.1%
+t1: C=0.5              300         25.7%   25.5%             0.1%
+t1: C=0.5              500         25.1%   20.3%             0.8%
+t1: C=0.5              1000        22.7%   12.7%             3.2%
+t1: C=0.5              3000        12.3%    3.8%            11.7%
+t2: balanced classes   100          9.2%   67.4%             0.0%
+t2: balanced classes   200         11.3%   47.9%             0.0%
+t2: balanced classes   300         13.6%   34.2%             0.0%
+t2: balanced classes   500         14.4%   24.1%             0.3%
+t2: balanced classes   1000        11.9%   15.0%             3.8%
+t2: balanced classes   3000         3.6%    3.8%            26.3%
+t3: char 3-5-grams     100          8.9%   64.2%             0.0%
+t3: char 3-5-grams     200         10.2%   48.8%             0.0%
+t3: char 3-5-grams     300         14.9%   36.2%             0.0%
+t3: char 3-5-grams     500         16.4%   23.6%             0.3%
+t3: char 3-5-grams     1000        10.8%   14.4%             3.2%
+t3: char 3-5-grams     3000         3.4%    2.0%            25.4%
+
+== Pre-registered predictions (E7b) ==
+P7b.1 >= 2 of 3 tweaks within 1.5 points of v2: 3 of 3 (t1: C=0.5: 0.2 pts, t2: balanced classes: 0.2 pts, t3: char 3-5-grams: 0.2 pts) -> HELD
+P7b.2 for tweaks within 1.5 points, worse ties or wins on >= 20% at g = 300: t1: C=0.5: 51.2%, t2: balanced classes: 47.8%, t3: char 3-5-grams: 51.1% -> HELD
+P7b.3 for those, McNemar detects <= 30% at g = 300 and 80% power needs >= 1,000: t1: C=0.5: 0.1%, 22239 queries, t2: balanced classes: 0.0%, 9399 queries, t3: char 3-5-grams: 0.0%, 9399 queries -> HELD
+Falsifier (all 3 tweaks >= 3 points from v2): not triggered

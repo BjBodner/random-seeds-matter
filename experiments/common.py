@@ -7,7 +7,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import BrokenProcessPool
 
-ROOT_SEED = 20261008                        # the only seed in the project
+ROOT_SEED = 20261008                        # the root of every random stream
 QUICK = "--quick" in sys.argv               # small seed counts, for a fast check
 N_JOBS = int(os.environ.get("N_JOBS", -1))  # parallel workers (-1 = all cores)
 
@@ -20,8 +20,8 @@ def seeds(experiment, stream, n):
 
 def pmap(fn, tasks):
     """fn(*task) for every task, in parallel. Results depend only on the seeds,
-    so if a worker process dies (it happened to me on Windows), just retry."""
-    for _ in range(5):
+    so if a worker process dies (joblib does this on some Windows setups), retry."""
+    for _ in range(3):
         try:
             return Parallel(n_jobs=N_JOBS)(delayed(fn)(*t) for t in tasks)
         except BrokenProcessPool:

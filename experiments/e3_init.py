@@ -138,7 +138,15 @@ def figure(df, img):
             a2.scatter(x + rng.uniform(-0.25, 0.25, len(e)), e.test_acc, s=10, color=colors[v], alpha=0.6, linewidths=0)
     a2.set_xticks(range(len(CONDITIONS)), [c.replace(", ", "\n") for c in CONDITIONS], fontsize=10)
     a2.set_ylabel("test accuracy")
-    a2.set_title("Scaling + iterations collapse the lottery")
+    a2.set_title("Scaling, not iterations, collapses the lottery")
+    from matplotlib.lines import Line2D
+    a2.legend(handles=[Line2D([], [], marker="o", ls="", color=colors[v], label=v) for v in CLASS_ORDER],
+              fontsize=9, loc="lower right")
     a2.grid(axis="x", visible=False)
     fig.tight_layout()
     save_fig(fig, img, "e3_init_audit")
+
+
+def redraw(out, img):
+    import pandas as pd
+    figure(pd.read_csv(os.path.join(out, "e3_init.csv")), img)

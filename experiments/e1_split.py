@@ -94,7 +94,7 @@ if __name__ == "__main__":
 # --- end ---
 
 
-def plot_boundary_map(cells, path="images/e1b_boundary_map.png", ax=None):
+def plot_boundary_map(cells, path="images/e1b_boundary_map.png", ax=None, legend_loc="upper right"):
     """The hero figure: R(n) per dataset, median line and min-max band over subsamples."""
     from matplotlib.ticker import FuncFormatter, NullFormatter
     from experiments.common import BG, NEUTRAL, OKABE_ITO, dark_style
@@ -132,7 +132,7 @@ def plot_boundary_map(cells, path="images/e1b_boundary_map.png", ax=None):
     lo_y, hi_y = ax.get_ylim()
     ax.set_yticks([t for t in (0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16) if lo_y <= t <= hi_y])
     ax.tick_params(labelsize=13)
-    ax.legend(loc="upper right", fontsize=13)
+    ax.legend(loc=legend_loc, fontsize=13)
     if own:
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         fig.savefig(path, dpi=200, bbox_inches="tight")

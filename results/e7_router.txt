@@ -1,0 +1,28 @@
+E7 - the golden-set lottery: two intent routers on Banking77 (77 routes, CC BY 4.0)
+design: routers trained once on the 10,003-query train split; golden sets of [100, 200, 300, 500, 1000, 3000] queries drawn with replacement from the test split; 1000 golden sets per size
+v1 (word TF-IDF + LogReg): failure rate on all 3080 test queries 0.143
+v2 (word+char TF-IDF + LinearSVC): failure rate on all 3080 test queries 0.088
+true gap 0.055 in failure rate; discordant queries 7.9%
+g=100   worse router wins 0.9%, ties 1.6%, McNemar detects 36.4%; measured gap 0.054 +/- 0.027
+g=200   worse router wins 0.1%, ties 0.5%, McNemar detects 77.9%; measured gap 0.055 +/- 0.019
+g=300   worse router wins 0.1%, ties 0.0%, McNemar detects 93.4%; measured gap 0.054 +/- 0.015
+g=500   worse router wins 0.0%, ties 0.0%, McNemar detects 99.6%; measured gap 0.054 +/- 0.012
+g=1000  worse router wins 0.0%, ties 0.0%, McNemar detects 100.0%; measured gap 0.055 +/- 0.009
+g=3000  worse router wins 0.0%, ties 0.0%, McNemar detects 100.0%; measured gap 0.055 +/- 0.005
+golden-set size for 80% McNemar power: 205 queries
+
+better router (on all test queries): v2 (word+char TF-IDF + LinearSVC); worse: v1 (word TF-IDF + LogReg)
+accuracy 0.912 vs 0.857; gap 5.5 points of accuracy
+g=100: wrong or tied 2.5%; measured failure-rate range -0.040 to 0.150
+g=200: wrong or tied 0.6%; measured failure-rate range -0.010 to 0.125
+g=300: wrong or tied 0.1%; measured failure-rate range -0.003 to 0.103
+g=500: wrong or tied 0.0%; measured failure-rate range 0.016 to 0.104
+g=1000: wrong or tied 0.0%; measured failure-rate range 0.031 to 0.083
+g=3000: wrong or tied 0.0%; measured failure-rate range 0.038 to 0.072
+
+== Pre-registered predictions ==
+P7.1 full-test accuracy gap < 3 points: observed 5.5 -> FAILED
+P7.2 g = 300: worse router ties or wins on >= 15% of golden sets: observed 0.1% -> FAILED
+P7.3 g = 300: McNemar detects on <= 60% of golden sets: observed 93.4% -> FAILED
+P7.4 size for 80% power >= 500: observed 205 -> FAILED
+Falsifier (gap >= 5 points): TRIGGERED

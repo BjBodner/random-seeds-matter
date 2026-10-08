@@ -25,7 +25,8 @@ WS="$ROOT/build/workspace"
 rm -rf "$ROOT/build"; mkdir -p "$WS"
 cp "$ROOT/article/draft.md" "$ROOT/article/citations.md" "$WS/"
 cp -r "$ROOT/images" "$ROOT/results" "$WS/"
-if [ -d "$ROOT/experiments" ]; then cp -r "$ROOT/experiments" "$WS/code"; else cp -r "$ROOT/code" "$WS/code"; fi
+mkdir -p "$WS/code"
+if [ -d "$ROOT/experiments" ]; then cp -r "$ROOT/experiments" "$WS/code/experiments"; else cp -r "$ROOT/code/." "$WS/code/"; fi  # keep the package layout so imports work
 [ -f "$ROOT/seeds_matter.py" ] && cp "$ROOT/seeds_matter.py" "$WS/code/"
 [ -f "$ROOT/requirements.txt" ] && cp "$ROOT/requirements.txt" "$WS/code/"
 find "$WS" -name "__pycache__" -prune -exec rm -rf {} +
