@@ -157,3 +157,56 @@ Predictions:
 **E7b outcomes (appended 2026-10-09 after the E7b run; the predictions above are unedited).** All three tweaks are 0.2 points from v2 on the full test set. **P7b.1 HELD** (3 of 3 within 1.5 points). **P7b.2 HELD**: the worse router ties or wins on 51.2% (t1), 47.8% (t2) and 51.1% (t3) of 300-query golden sets. **P7b.3 HELD**: McNemar detects on 0.1% / 0.0% / 0.0% at 300 queries, and 80% power needs 22,239 / 9,399 / 9,399 queries. The falsifier did not trigger.
 
 **Tally across all pre-registered predictions: 14 of 22 held as run** (E1–E6: 11 of 15; E7: 0 of 4; E7b: 3 of 3). P5.1 also holds under the exact pre-registered spec (robustness rerun).
+
+---
+
+## E8 — The effect at full strength: tailored datasets (ADDED 2026-10-13, committed before any E8 study code exists or runs)
+
+Why (Benjy, 2026-10-13): the article should first show the situation where seeds beat the model **strongly and clearly**, then draw the boundaries. E1 on breast cancer shows a modest effect (median R = 2.42 at n = 150). E8 builds datasets designed to show the mechanism at full strength, then turns one dial at a time to show where it dies.
+
+**Pilots (disclosed, not results).** The designs below were chosen after 5 pilot runs on separate seed roots (`SeedSequence(777)` to `SeedSequence(781)`), which no study stream uses. Pilot lessons: off-the-shelf kNN (k = 5), unpruned forests and default boosting overfit label noise, so their averages trail the ceiling and cap R at about 2; CV-tuning every model inside each split was 15× slower and less stable (the tuned MLP sometimes picked a degenerate setting); fixed, regularized settings let all 8 families reach the same ceiling. Pilot R values for the designs below: roughly 5 to 8 (T1), 10 to 12 (T2), 12 to 16 (T3), 16 to 49 (T4). Pilot numbers are never quoted as results.
+
+**Data generator** (2 features, balanced classes): class means sit `separation` apart along x0, unit-variance Gaussian noise, an optional `bend` that moves both classes by `bend · (x1² − 1)` along x0 (so the true boundary curves and linear models can't follow it), and an optional `label_noise` share of labels flipped at random (annotators who disagree).
+
+**The 8-model zoo**, every setting fixed now and never tuned on study data:
+- `LogisticRegression()` (scaled)
+- `GaussianNB()`
+- `SVC()` (RBF, scaled)
+- `KNeighborsClassifier(n_neighbors=31)` (scaled)
+- `DecisionTreeClassifier(max_depth=2)`
+- `RandomForestClassifier(n_estimators=100, min_samples_leaf=20)`
+- `HistGradientBoostingClassifier(max_depth=2, learning_rate=0.03)`
+- `MLPClassifier(hidden_layer_sizes=(32,), alpha=1.0, max_iter=2000)` (scaled)
+
+All internal seeds are fixed at 0; only the split seed moves (as in E1).
+
+**E8a — four tailored designs.** Each has 5 dataset instances (data seeds from stream (8, 1 + design index)) × 200 stratified split seeds (stream (8, 0), shared by all designs):
+- **T1 overlapping classes, 300 rows:** separation 2.0 (no model can beat about 84%); 210 train / 90 test.
+- **T2 disputed labels, 300 rows:** separation 6.0 (cleanly separated groups) with 20% of labels flipped; 210 / 90.
+- **T3 a 100-row golden set, overlapping classes:** separation 2.0; 1,000 train / 100 test.
+- **T4 a 100-row golden set, disputed labels:** separation 6.0, 20% flipped; 1,000 / 100.
+
+Metrics:
+- `R` is exactly E1's ratio: the mean over the 8 models of each model's std across split seeds, divided by the std of the 8 models' mean accuracies. R is computed per instance; a design's R is the median over its 5 instances.
+- Agreement: the share of test rows on which all 8 models predict the same label (mean over splits).
+- A 95% bootstrap CI over split seeds for the hero instance's R.
+
+**Hero selection rule, fixed now:**
+- The hero design is the design with the largest median R (all four are eligible).
+- The hero instance is that design's median-R instance (the 3rd of 5 when sorted), not its most extreme one.
+- Left panel: "same data, different models", the 8 models' mean accuracies over the 200 splits.
+- Right panel: "same model, different seeds", logistic regression's accuracy on each of the 200 split seeds.
+- Each panel shades ±1 std. The bubble shows the ratio of the two drawn stds: logistic regression's std across seeds ÷ the std of the 8 model means. Both that ratio and R are printed.
+
+**E8b — the dials.** One knob at a time, starting from T1's family (separation 2.0, no label noise). Each setting has 3 instances × 200 split seeds (streams (8, 10+), seeds fixed by setting index):
+- **D1 bend** ∈ {0, 0.5, 1, 1.5, 2} at n = 300 (70/30).
+- **D2 dataset size** n ∈ {150, 300, 1000, 3000} (70/30), for bend = 0 and bend = 1.
+- **D3 golden-set size** g ∈ {50, 100, 300, 1000} test rows, with 1,000 training rows and bend 0.
+
+Predictions:
+- P8.1 Every E8a design has median R ≥ 4.
+- P8.2 The largest median R among the E8a designs is ≥ 10.
+- P8.3 D1: median R ≥ 3 at bend 0 and < 1 at bend 2.
+- P8.4 D2: with bend 1, median R < 1 at n = 1,000 and at n = 3,000. With bend 0, median R > 1 at every n.
+- P8.5 D3: median R at g = 1,000 is lower than at g = 50, and stays > 1 at every g.
+- **Falsifier:** if the largest median R among E8a designs is < 5, the "full strength" framing is dropped and the article says so.
