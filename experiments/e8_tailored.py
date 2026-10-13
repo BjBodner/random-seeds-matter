@@ -12,6 +12,7 @@ if __package__ in (None, ""):
 from experiments.common import QUICK, np, pmap, seeds  # noqa: F401
 
 # --- article: e8 ---
+from scipy.stats import norm
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -55,6 +56,12 @@ def tailored(n, separation, label_noise=0.0, bend=0.0, seed=0):
     return X, np.where(flipped, 1 - y, y)
 
 
+def best_possible(separation, label_noise=0.0, bend=0.0):
+    """The accuracy of a perfect model (the Bayes rate); the bend moves both classes, so it doesn't matter."""
+    p = norm.cdf(separation / 2)
+    return (1 - label_noise) * p + label_noise * (1 - p)
+
+
 def zoo_on_split(X, y, test_rows, split_seed):
     """Accuracy of all 8 models on one split, and the share of test rows on which they all agree."""
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=test_rows, stratify=y, random_state=split_seed)
@@ -80,8 +87,8 @@ def e8_full_strength(quick=QUICK):
             cells[name, j] = np.array([r[0] for r in runs]), np.mean([r[1] for r in runs])
         Rs = [seeds_vs_zoo(cells[name, j][0])[2] for j in range(n_data)]
         agree = np.mean([cells[name, j][1] for j in range(n_data)])
-        print(f"{name:<43} R = {np.median(Rs):.1f} (median of {n_data} datasets, "
-              f"range {min(Rs):.1f} to {max(Rs):.1f}); all 8 models agree on {agree:.1%} of test rows")
+        print(f"{name:<43} best possible {best_possible(**settings):.1%}; R = {np.median(Rs):.1f} (median of "
+              f"{n_data} datasets, range {min(Rs):.1f} to {max(Rs):.1f}); all 8 models agree on {agree:.1%} of test rows")
     return cells
 
 
@@ -241,58 +248,60 @@ def plot_hero(acc, path, design=""):
     sd_models, sd_seeds = means.std(ddof=1), runs.std(ddof=1)
     ratio = sd_seeds / sd_models
 
-    fig = plt.figure(figsize=(19, 9.6))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.34, 1.05], wspace=0)
+    fig = plt.figure(figsize=(19, 10))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.42, 1], wspace=0)
     axl = fig.add_subplot(gs[0])
     axr = fig.add_subplot(gs[2], sharey=axl)
-    short = ["Logistic\nregression", "Naive\nBayes", "SVM", "kNN", "Decision\ntree", "Random\nforest",
-             "Gradient\nboosting", "Neural\nnet"]
-    panels = [(axl, np.arange(len(means)), means, sky, "Same data,\ndifferent models"),
-              (axr, np.arange(1, len(runs) + 1), runs, orange, "Same model,\ndifferent seeds")]
-    for ax, x, v, col, title in panels:
+    names = ["Logistic regression", "Naive Bayes", "SVM (RBF)", "kNN", "Decision tree", "Random forest",
+             "Gradient boosting", "Neural net"]
+    for ax, v, col, title in [(axl, means, sky, "Same data,\ndifferent models"),
+                              (axr, runs, orange, "Same model,\ndifferent seeds")]:
         mu, sd = v.mean(), v.std(ddof=1)
         ax.axhspan(mu - sd, mu + sd, color=col, alpha=0.28, lw=0, zorder=1)
         for edge in (mu - sd, mu + sd):
             ax.axhline(edge, color=col, lw=3, zorder=2)
-        ax.set_title(title, fontsize=34, fontweight="bold", color=col, pad=22, linespacing=1.05)
+        ax.set_title(title, fontsize=36, fontweight="bold", color=col, pad=24, linespacing=1.05)
         ax.grid(axis="x", visible=False)
         ax.grid(axis="y", color="#333333", lw=1)
-        ax.tick_params(axis="y", labelsize=26, length=0, pad=8)
+        ax.tick_params(axis="y", labelsize=27, length=0, pad=10)
         ax.tick_params(axis="x", length=0, pad=10)
         ax.yaxis.set_major_formatter(FuncFormatter(lambda val, _: f"{val:.0f}%"))
-    axl.scatter(panels[0][1], means, s=620, color=sky, edgecolor=BG, linewidth=3, zorder=4)
-    axl.set_xticks(panels[0][1], short, fontsize=19, linespacing=0.95)
+    x = np.arange(len(means))
+    axl.scatter(x, means, s=650, color=sky, edgecolor=BG, linewidth=3, zorder=4)
+    axl.set_xticks(x, names, fontsize=21, rotation=38, ha="right", rotation_mode="anchor")
     axl.set_xlim(-0.6, len(means) - 0.4)
-    axl.set_xlabel("8 model families: each dot is one model's\naverage over the same 200 splits",
-                   fontsize=22, labelpad=14, linespacing=1.1)
-    axr.scatter(panels[1][1], runs, s=95, color=orange, edgecolor=BG, linewidth=0.8, zorder=4, alpha=0.95)
-    axr.set_xticks([1, 50, 100, 150, 200])
-    axr.tick_params(axis="x", labelsize=22)
+    axl.set_xlabel(f"8 models, each dot = its average over the same {len(acc)} splits", fontsize=22, labelpad=12)
+    xs = np.arange(1, len(runs) + 1)
+    axr.scatter(xs, runs, s=110, color=orange, edgecolor=BG, linewidth=0.8, zorder=4)
+    axr.set_xticks([t for t in (1, 50, 100, 150, 200) if t <= len(runs)])
+    axr.tick_params(axis="x", labelsize=24)
     axr.set_xlim(-6, len(runs) + 7)
-    axr.set_xlabel(f"{HERO_MODEL}: one dot per random seed\n(split seed #1 to #{len(runs)})",
-                   fontsize=22, labelpad=14, linespacing=1.1)
-    axr.tick_params(axis="y", labelleft=True)
-    axl.set_ylabel("test accuracy", fontsize=28, labelpad=14)
+    axr.set_xlabel(f"{HERO_MODEL}, one dot per random seed", fontsize=22, labelpad=12)
+    axr.yaxis.tick_right()                     # keep the gap free for the arrow and the bubble
+    axr.tick_params(axis="y", labelright=True, labelleft=False)
+    axr.spines["left"].set_visible(False)
+    axr.spines["right"].set_visible(True)
+    axl.set_ylabel("test accuracy", fontsize=30, labelpad=14)
     lo, hi = runs.min(), runs.max()
     pad = 0.06 * (hi - lo)
-    axl.set_ylim(lo - pad, hi + pad * 2.2)
+    axl.set_ylim(lo - pad, hi + pad * 2.6)
     axl.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5 if hi - lo > 15 else 2))
 
-    # labels for the two spreads
-    axl.text(len(means) - 0.5, means.mean() + sd_models + 0.012 * (hi - lo) + 0.25, f"spread ±{sd_models:.1f} pts",
-             ha="right", va="bottom", fontsize=28, color=sky, fontweight="bold")
-    axr.text(len(runs) + 5, hi + pad * 0.6, f"spread ±{sd_seeds:.1f} pts", ha="right", va="bottom",
-             fontsize=28, color=orange, fontweight="bold")
+    # the two spreads, labelled with the same precision so the ratio can be checked by eye
+    axl.text(len(means) - 0.5, means.mean() + sd_models + 0.35, f"spread ±{sd_models:.2f} pts",
+             ha="right", va="bottom", fontsize=29, color=sky, fontweight="bold")
+    axr.text(len(runs) + 5, hi + pad * 0.7, f"spread ±{sd_seeds:.2f} pts", ha="right", va="bottom",
+             fontsize=29, color=orange, fontweight="bold")
 
     # the arrow from the small spread to the large one, and the bubble
-    start = (len(means) - 0.35, means.mean())
-    end = (-5, runs.mean() + 0.55 * sd_seeds)
+    start = (len(means) - 0.3, means.mean())
+    end = (-5, runs.mean() + 0.6 * sd_seeds)
     fig.add_artist(ConnectionPatch(xyA=start, coordsA=axl.transData, xyB=end, coordsB=axr.transData,
-                                   arrowstyle="-|>,head_length=1.6,head_width=0.8", color=yellow, lw=7,
-                                   connectionstyle="arc3,rad=-0.25", zorder=20))
+                                   arrowstyle="-|>,head_length=1.6,head_width=0.8", color=yellow, lw=8,
+                                   connectionstyle="arc3,rad=-0.3", zorder=20))
     bl, br = axl.get_position(), axr.get_position()
-    fig.text((bl.x1 + br.x0) / 2, 0.66, f"{ratio:.1f}×\nmore", ha="center", va="center", fontsize=58,
-             fontweight="bold", color=BG, linespacing=0.92, zorder=21,
+    fig.text((bl.x1 + br.x0) / 2, bl.y0 + 0.80 * (bl.y1 - bl.y0), f"{ratio:.1f}×\nmore", ha="center",
+             va="center", fontsize=60, fontweight="bold", color=BG, linespacing=0.92, zorder=21,
              bbox=dict(boxstyle="round,pad=0.42", fc=yellow, ec="none"))
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
@@ -301,49 +310,55 @@ def plot_hero(acc, path, design=""):
 
 
 def plot_dials(dcells, nd, path):
-    from matplotlib.ticker import FuncFormatter, NullFormatter
+    from matplotlib.ticker import FuncFormatter, NullFormatter, NullLocator
     from experiments.common import OKABE_ITO, dark_style
     plt = dark_style()
-    fig, axes = plt.subplots(1, 3, figsize=(21, 7.4), sharey=True, gridspec_kw={"wspace": 0.08})
+    fig, axes = plt.subplots(1, 3, figsize=(21, 7.6), sharey=True, gridspec_kw={"wspace": 0.1})
     R = lambda i: dial_R(dcells, i, nd)  # noqa: E731
-    sky, orange, verm = OKABE_ITO["sky"], OKABE_ITO["orange"], OKABE_ITO["vermillion"]
-    style = dict(lw=4, ms=13, marker="o")
+    sky, verm = OKABE_ITO["sky"], OKABE_ITO["vermillion"]
+    style = dict(lw=4.5, ms=14, marker="o")
     ax = axes[0]
-    ax.plot([0, 0.5, 1, 1.5, 2], [R(i) for i in range(5)], color=verm, **style)
-    ax.set_xlabel("how much the true boundary bends", fontsize=21)
-    ax.set_title("1. Give the models different ceilings", fontsize=22, loc="left")
-    ax.set_xticks([0, 0.5, 1, 1.5, 2], ["straight", "0.5", "1", "1.5", "2"])
+    bends = [0, 0.5, 1, 1.5, 2]
+    ax.plot(bends, [R(i) for i in range(5)], color=verm, **style)
+    ax.set_xticks(bends, ["straight", "0.5", "1", "1.5", "2"])
+    ax.set_xlim(-0.2, 2.2)
+    ax.set_xlabel("how much the true boundary bends\n(n = 300)", fontsize=21)
+    ax.set_title("1. Bend the true boundary", fontsize=23, loc="left", pad=14)
     ax = axes[1]
     ns = [150, 300, 1000, 3000]
-    ax.plot(ns, [R(i) for i in range(5, 9)], color=sky, label="straight boundary (shared ceiling)", **style)
-    ax.plot(ns, [R(i) for i in range(9, 13)], color=verm, label="bent boundary (bend 1)", **style)
+    r0, r1 = [R(i) for i in range(5, 9)], [R(i) for i in range(9, 13)]
+    ax.plot(ns, r0, color=sky, label="straight boundary", **style)
+    ax.plot(ns, r1, color=verm, label="bent boundary (bend 1)", **style)
+    ax.legend(loc="upper right", fontsize=18, handlelength=1.6)
     ax.set_xscale("log")
     ax.set_xticks(ns, [f"{n:,}" for n in ns])
-    ax.xaxis.set_minor_formatter(NullFormatter())
-    ax.set_xlabel("dataset size n (70% train / 30% test)", fontsize=21)
-    ax.set_title("2. Add data", fontsize=22, loc="left")
-    ax.legend(fontsize=17, loc="lower left")
+    ax.set_xlim(120, 3800)
+    ax.set_xlabel("dataset size n\n(70% train / 30% test)", fontsize=21)
+    ax.set_title("2. Add data", fontsize=23, loc="left", pad=14)
     ax = axes[2]
     gsz = [50, 100, 300, 1000]
     ax.plot(gsz, [R(i) for i in range(13, 17)], color=sky, **style)
     ax.set_xscale("log")
     ax.set_xticks(gsz, [f"{g:,}" for g in gsz])
-    ax.xaxis.set_minor_formatter(NullFormatter())
-    ax.set_xlabel("golden-set size (1,000 training rows)", fontsize=21)
-    ax.set_title("3. Grow the golden set", fontsize=22, loc="left")
+    ax.set_xlim(40, 1250)
+    ax.set_xlabel("golden-set size\n(1,000 training rows, straight boundary)", fontsize=21)
+    ax.set_title("3. Grow the golden set", fontsize=23, loc="left", pad=14)
     allR = [R(i) for i in range(len(DIALS))]
     for ax in axes:
         ax.axhline(1, color="#FFFFFF", ls="--", lw=2)
         ax.set_yscale("log")
-        ax.tick_params(labelsize=18)
-    axes[0].set_ylim(min(allR) / 1.6, max(allR) * 1.6)
+        ax.tick_params(labelsize=19)
+        ax.xaxis.set_minor_locator(NullLocator())
+        ax.yaxis.set_minor_locator(NullLocator())
+        ax.xaxis.set_minor_formatter(NullFormatter())
+    axes[0].set_ylim(min(allR) / 1.7, max(allR) * 1.7)
     axes[0].yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
-    axes[0].yaxis.set_minor_formatter(NullFormatter())
     lo_y, hi_y = axes[0].get_ylim()
-    axes[0].set_yticks([t for t in (0.25, 0.5, 1, 2, 4, 8, 16, 32) if lo_y <= t <= hi_y])
-    axes[0].set_ylabel("R = seed spread / model spread", fontsize=21)
-    axes[0].text(0.03, 0.96, "seeds win (R > 1)", transform=axes[0].transAxes, va="top", fontsize=18, fontweight="bold")
-    axes[0].text(0.03, 0.04, "models win (R < 1)", transform=axes[0].transAxes, va="bottom", fontsize=18,
+    axes[0].set_yticks([t for t in (0.25, 0.5, 1, 2, 4, 8, 16, 32, 64) if lo_y <= t <= hi_y])
+    axes[0].set_ylabel("R = seed spread / model spread", fontsize=22)
+    axes[0].text(0.97, 0.96, "seeds win (R > 1)", transform=axes[0].transAxes, va="top", ha="right",
+                 fontsize=19, fontweight="bold")
+    axes[0].text(0.03, 0.04, "models win (R < 1)", transform=axes[0].transAxes, va="bottom", fontsize=19,
                  fontweight="bold")
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
