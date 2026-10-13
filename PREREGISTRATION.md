@@ -210,3 +210,7 @@ Predictions:
 - P8.4 D2: with bend 1, median R < 1 at n = 1,000 and at n = 3,000. With bend 0, median R > 1 at every n.
 - P8.5 D3: median R at g = 1,000 is lower than at g = 50, and stays > 1 at every g.
 - **Falsifier:** if the largest median R among E8a designs is < 5, the "full strength" framing is dropped and the article says so.
+
+**E8 outcomes (appended 2026-10-13 after the E8 run; the predictions above are unedited).** Source: `results/e8_tailored.txt`, `results/e8_dials.txt`. Median R by design: T1 6.9, T2 7.6, T3 13.3, T4 30.8. **P8.1 HELD** (smallest 6.9 ≥ 4). **P8.2 HELD** (largest 30.8 ≥ 10). The falsifier did not trigger. Following the hero rule, the hero is T4 (a 100-row golden set with disputed labels), dataset 2, its median-R dataset. Its 8 model means span 81.7% to 82.1% (std 0.12 pts); logistic regression across 200 split seeds has a std of 3.73 pts; the hero ratio is 30.9× (R = 30.8, 95% CI 21.8 to 45.1). **P8.3 HELD** (R 6.37 at bend 0, 0.69 at bend 2). **P8.4 HELD** (bend 1: 0.63 at n = 1,000 and 0.33 at n = 3,000; bend 0: smallest 4.55). **P8.5 HELD** (3.80 at g = 1,000 < 10.84 at g = 50; smallest 3.80). These predictions were calibrated on the disclosed pilots, so holding them is weak evidence.
+
+**Tally across all pre-registered predictions: 19 of 27 held as run** (E1–E6: 11 of 15; E7: 0 of 4; E7b: 3 of 3; E8: 5 of 5).

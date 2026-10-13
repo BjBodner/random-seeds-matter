@@ -1,0 +1,24 @@
+E8b - the dials: one knob at a time from T1's family (separation 2.0, no label noise)
+design: 3 datasets per setting x 200 split seeds; same 8 models
+D1 bend             bend 0 (n = 300)                     median R 6.37 (range 5.36 to 10.49); seed spread 3.48 pts, model spread 0.56 pts; agreement 93.0%
+D1 bend             bend 0.5 (n = 300)                   median R 3.44 (range 2.09 to 3.58); seed spread 3.49 pts, model spread 1.04 pts; agreement 85.6%
+D1 bend             bend 1 (n = 300)                     median R 1.95 (range 1.59 to 1.99); seed spread 3.75 pts, model spread 2.09 pts; agreement 73.7%
+D1 bend             bend 1.5 (n = 300)                   median R 1.35 (range 1.02 to 1.66); seed spread 4.13 pts, model spread 2.90 pts; agreement 63.0%
+D1 bend             bend 2 (n = 300)                     median R 0.69 (range 0.60 to 0.84); seed spread 4.29 pts, model spread 6.00 pts; agreement 48.8%
+D2 size, bend 0     n = 150 (105 train / 45 test)        median R 4.55 (range 2.57 to 6.23); seed spread 4.51 pts, model spread 0.98 pts; agreement 85.4%
+D2 size, bend 0     n = 300 (210 train / 90 test)        median R 5.38 (range 3.20 to 15.30); seed spread 3.29 pts, model spread 0.61 pts; agreement 91.7%
+D2 size, bend 0     n = 1000 (700 train / 300 test)      median R 7.60 (range 6.19 to 9.32); seed spread 1.81 pts, model spread 0.24 pts; agreement 94.3%
+D2 size, bend 0     n = 3000 (2100 train / 900 test)     median R 6.46 (range 3.23 to 7.78); seed spread 1.04 pts, model spread 0.16 pts; agreement 94.9%
+D2 size, bend 1     n = 150 (105 train / 45 test)        median R 2.20 (range 1.61 to 2.38); seed spread 5.36 pts, model spread 2.54 pts; agreement 70.1%
+D2 size, bend 1     n = 300 (210 train / 90 test)        median R 1.51 (range 0.98 to 1.69); seed spread 3.85 pts, model spread 2.55 pts; agreement 68.9%
+D2 size, bend 1     n = 1000 (700 train / 300 test)      median R 0.63 (range 0.59 to 0.69); seed spread 2.07 pts, model spread 3.13 pts; agreement 74.9%
+D2 size, bend 1     n = 3000 (2100 train / 900 test)     median R 0.33 (range 0.29 to 0.34); seed spread 1.10 pts, model spread 3.61 pts; agreement 74.3%
+D3 golden-set size  golden set 50 rows (1000 train)      median R 10.84 (range 10.68 to 22.62); seed spread 5.06 pts, model spread 0.47 pts; agreement 93.2%
+D3 golden-set size  golden set 100 rows (1000 train)     median R 7.57 (range 6.08 to 18.19); seed spread 3.36 pts, model spread 0.44 pts; agreement 93.7%
+D3 golden-set size  golden set 300 rows (1000 train)     median R 8.94 (range 6.00 to 9.48); seed spread 1.75 pts, model spread 0.19 pts; agreement 93.3%
+D3 golden-set size  golden set 1000 rows (1000 train)    median R 3.80 (range 3.24 to 7.37); seed spread 0.82 pts, model spread 0.21 pts; agreement 93.4%
+
+== Pre-registered predictions (E8b) ==
+P8.3 D1: median R >= 3 at bend 0 (6.37) and < 1 at bend 2 (0.69) -> HELD
+P8.4 D2: bend 1 has R < 1 at n = 1000 (0.63) and n = 3000 (0.33); bend 0 has R > 1 at every n (smallest 4.55) -> HELD
+P8.5 D3: R at g = 1000 (3.80) < R at g = 50 (10.84), and > 1 at every g (smallest 3.80) -> HELD

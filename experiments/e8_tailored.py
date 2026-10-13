@@ -248,8 +248,8 @@ def plot_hero(acc, path, design=""):
     sd_models, sd_seeds = means.std(ddof=1), runs.std(ddof=1)
     ratio = sd_seeds / sd_models
 
-    fig = plt.figure(figsize=(19, 10))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.42, 1], wspace=0)
+    fig = plt.figure(figsize=(20, 10))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.56, 1], wspace=0)
     axl = fig.add_subplot(gs[0])
     axr = fig.add_subplot(gs[2], sharey=axl)
     names = ["Logistic regression", "Naive Bayes", "SVM (RBF)", "kNN", "Decision tree", "Random forest",
@@ -257,8 +257,9 @@ def plot_hero(acc, path, design=""):
     for ax, v, col, title in [(axl, means, sky, "Same data,\ndifferent models"),
                               (axr, runs, orange, "Same model,\ndifferent seeds")]:
         mu, sd = v.mean(), v.std(ddof=1)
-        ax.axhspan(mu - sd, mu + sd, color=col, alpha=0.28, lw=0, zorder=1)
-        for edge in (mu - sd, mu + sd):
+        thin = 2 * sd < 0.02 * np.ptp(runs)           # a band thinner than the dots: fill it, no edge lines
+        ax.axhspan(mu - sd, mu + sd, color=col, alpha=0.6 if thin else 0.28, lw=0, zorder=1)
+        for edge in ([] if thin else (mu - sd, mu + sd)):
             ax.axhline(edge, color=col, lw=3, zorder=2)
         ax.set_title(title, fontsize=36, fontweight="bold", color=col, pad=24, linespacing=1.05)
         ax.grid(axis="x", visible=False)
@@ -301,7 +302,7 @@ def plot_hero(acc, path, design=""):
                                    connectionstyle="arc3,rad=-0.3", zorder=20))
     bl, br = axl.get_position(), axr.get_position()
     fig.text((bl.x1 + br.x0) / 2, bl.y0 + 0.80 * (bl.y1 - bl.y0), f"{ratio:.1f}×\nmore", ha="center",
-             va="center", fontsize=60, fontweight="bold", color=BG, linespacing=0.92, zorder=21,
+             va="center", fontsize=54, fontweight="bold", color=BG, linespacing=0.92, zorder=21,
              bbox=dict(boxstyle="round,pad=0.42", fc=yellow, ec="none"))
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")

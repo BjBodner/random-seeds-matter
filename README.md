@@ -1,7 +1,7 @@
 # Random seeds matter more than your model, until they don't
 
 Code, results and figures for the Towards Data Science article by **Benjamin Bodner**:
-*At golden-set sizes of a few hundred examples, the random split can outvote your model: 7 pre-registered experiments and the fix.*
+*At golden-set sizes of a few hundred examples, the random split can outvote your model: 8 pre-registered experiments and the fix.*
 
 Every number in the article is printed by this code and captured in `results/`. Every figure is in `images/`. Every random stream derives from one root, `np.random.SeedSequence(20261008)`.
 
@@ -33,7 +33,8 @@ python seeds_matter.py --only e1,e3 --n-jobs 8
 | E5 — variance decomposition | `experiments/e5_decomposition.py` | `results/e5_decomposition.txt`, `.csv` | `e5_variance_shares.png` |
 | E5 robustness — the MLP exactly as pre-registered (n = 300) | `experiments/e5_prereg_mlp.py` (`--only e5r`) | `results/e5_prereg_mlp.txt`, `.csv` | (bar in `e5_variance_shares.png`) |
 | E5 follow-up (exploratory) — close pair only, bootstrap CIs | `experiments/e5_exploratory.py` (reads the E5 CSV) | `results/e5_exploratory.txt` | `e5_variance_shares.png` |
-| E7 / E7b — the golden-set lottery: an intent router on Banking77 (a real upgrade + 3 small tweaks) | `experiments/e7_router.py` | `results/e7_router.txt`, `results/e7b_tweaks.txt`, `.csv` | `e7a_golden_set_lottery.png` (hero), `e7b_until_they_dont.png` |
+| E7 / E7b — the golden-set lottery: an intent router on Banking77 (a real upgrade + 3 small tweaks) | `experiments/e7_router.py` | `results/e7_router.txt`, `results/e7b_tweaks.txt`, `.csv` | `e7a_golden_set_lottery.png`, `e7b_until_they_dont.png` |
+| E8 — the effect at full strength: 4 tailored datasets (hero) and 3 dials that switch it off | `experiments/e8_tailored.py` | `results/e8_tailored.txt`, `results/e8_dials.txt`, `.csv` | `e8a_seeds_vs_models.png` (hero), `e8b_dials.png` |
 | E7 descriptive + McNemar sample-size table | `experiments/e7_descriptive.py` (`--only e7d`) | `results/e7_descriptive.txt` | — |
 | E6 — comparing two models honestly | `experiments/e6_fix.py` | `results/e6_fix.txt`, `.csv` | `e6_procedures.png` |
 
@@ -43,7 +44,7 @@ Each script's code between the `# --- article: ... ---` markers is exactly what 
 
 - `PREREGISTRATION.md` was committed before any experiment ran (see `git log`). Every prediction is reported as held or failed in `results/*.txt` and in the article.
 - Deviations from the pre-registration are listed in `article/DECISIONS.md`. The main one: E5's MLP uses `early_stopping=True` for runtime. `experiments/e5_prereg_mlp.py` reruns n = 300 with the MLP exactly as pre-registered; that rerun reverses the one E5 prediction that failed.
-- Redraw every figure from the CSVs without refitting: `python seeds_matter.py --redraw --only e1,e3,e5,e7`.
+- Redraw every figure from the CSVs without refitting: `python seeds_matter.py --redraw --only e1,e3,e5,e7,e8`.
 - `tools/check_numbers.py` fails the build if any number in the article's prose is missing from `results/`.
 
 ## Data
