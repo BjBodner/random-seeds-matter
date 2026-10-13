@@ -35,6 +35,7 @@ python seeds_matter.py --only e1,e3 --n-jobs 8
 | E5 follow-up (exploratory) — close pair only, bootstrap CIs | `experiments/e5_exploratory.py` (reads the E5 CSV) | `results/e5_exploratory.txt` | `e5_variance_shares.png` |
 | E7 / E7b — the golden-set lottery: an intent router on Banking77 (a real upgrade + 3 small tweaks) | `experiments/e7_router.py` | `results/e7_router.txt`, `results/e7b_tweaks.txt`, `.csv` | `e7a_golden_set_lottery.png`, `e7b_until_they_dont.png` |
 | E8 — the effect at full strength: 4 tailored datasets (hero) and 3 dials that switch it off | `experiments/e8_tailored.py` | `results/e8_tailored.txt`, `results/e8_dials.txt`, `.csv` | `e8a_seeds_vs_models.png` (hero), `e8b_dials.png` |
+| E8 descriptive — the spread across the 8 models on the same split (answers 'averages vs single runs') | `experiments/e8_descriptive.py` (`--only e8d`, reads the E8 CSV) | `results/e8_descriptive.txt` | — |
 | E7 descriptive + McNemar sample-size table | `experiments/e7_descriptive.py` (`--only e7d`) | `results/e7_descriptive.txt` | — |
 | E6 — comparing two models honestly | `experiments/e6_fix.py` | `results/e6_fix.txt`, `.csv` | `e6_procedures.png` |
 
@@ -43,6 +44,7 @@ Each script's code between the `# --- article: ... ---` markers is exactly what 
 ## Integrity
 
 - `PREREGISTRATION.md` was committed before any experiment ran (see `git log`). Every prediction is reported as held or failed in `results/*.txt` and in the article.
+- E8's designs were chosen on disclosed pilot runs (separate seed roots); the pilot code and logs are in `pilots/e8/` and are never quoted as results.
 - Deviations from the pre-registration are listed in `article/DECISIONS.md`. The main one: E5's MLP uses `early_stopping=True` for runtime. `experiments/e5_prereg_mlp.py` reruns n = 300 with the MLP exactly as pre-registered; that rerun reverses the one E5 prediction that failed.
 - Redraw every figure from the CSVs without refitting: `python seeds_matter.py --redraw --only e1,e3,e5,e7,e8`.
 - `tools/check_numbers.py` fails the build if any number in the article's prose is missing from `results/`.

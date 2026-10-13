@@ -1,0 +1,9 @@
+blobs_flip eta=0.1 sep=4 d=2       n=300  A(sd ratio per-split)=  2.11  B(E1 R)=  2.58  rangeRatio=  2.00 seedSD=0.0250 modelSD/split=0.0118 means=LogReg:0.901 LDA:0.903 NaiveBayes:0.902 SVC-RBF:0.902 kNN:0.897 RandomForest:0.887 HistGB:0.877 MLP:0.901  (83s)
+blobs_flip eta=0.2 sep=4 d=2       n=300  A(sd ratio per-split)=  1.47  B(E1 R)=  2.00  rangeRatio=  1.40 seedSD=0.0378 modelSD/split=0.0249 means=LogReg:0.778 LDA:0.779 NaiveBayes:0.775 SVC-RBF:0.776 kNN:0.747 RandomForest:0.725 HistGB:0.738 MLP:0.775  (73s)
+blobs_flip eta=0.3 sep=4 d=2       n=300  A(sd ratio per-split)=  1.03  B(E1 R)=  1.12  rangeRatio=  1.08 seedSD=0.0427 modelSD/split=0.0415 means=LogReg:0.661 LDA:0.662 NaiveBayes:0.656 SVC-RBF:0.653 kNN:0.591 RandomForest:0.581 HistGB:0.588 MLP:0.655  (62s)
+blobs_flip eta=0.3 sep=6 d=2       n=300  A(sd ratio per-split)=  1.10  B(E1 R)=  1.21  rangeRatio=  1.01 seedSD=0.0406 modelSD/split=0.0371 means=LogReg:0.673 LDA:0.674 NaiveBayes:0.671 SVC-RBF:0.674 kNN:0.598 RandomForest:0.600 HistGB:0.615 MLP:0.670  (129s)
+blobs_flip eta=0.2 sep=4 d=5       n=300  A(sd ratio per-split)=  1.40  B(E1 R)=  1.69  rangeRatio=  1.32 seedSD=0.0368 modelSD/split=0.0283 means=LogReg:0.768 LDA:0.769 NaiveBayes:0.766 SVC-RBF:0.751 kNN:0.715 RandomForest:0.747 HistGB:0.719 MLP:0.755  (154s)
+overlap sep=1.0 d=2                n=300  A(sd ratio per-split)=  1.47  B(E1 R)=  1.79  rangeRatio=  1.33 seedSD=0.0406 modelSD/split=0.0282 means=LogReg:0.682 LDA:0.681 NaiveBayes:0.679 SVC-RBF:0.673 kNN:0.633 RandomForest:0.649 HistGB:0.653 MLP:0.678  (98s)
+overlap sep=1.5 d=2                n=300  A(sd ratio per-split)=  1.58  B(E1 R)=  2.08  rangeRatio=  1.51 seedSD=0.0370 modelSD/split=0.0252 means=LogReg:0.759 LDA:0.760 NaiveBayes:0.762 SVC-RBF:0.748 kNN:0.727 RandomForest:0.728 HistGB:0.721 MLP:0.753  (116s)
+
+[exited with code 0]

@@ -1,0 +1,9 @@
+E8 descriptive (not pre-registered): spread across the 8 models on the SAME split
+per-split model spread = root-mean-square over splits of the std across the 8 models on that split
+T1 overlapping classes, 300 rows            per-split model spread 1.43 pts; seed spread / per-split model spread 2.4x (median of 5 datasets)
+T2 disputed labels, 300 rows                per-split model spread 1.11 pts; seed spread / per-split model spread 3.4x (median of 5 datasets)
+T3 100-row golden set, overlapping classes  per-split model spread 1.10 pts; seed spread / per-split model spread 3.1x (median of 5 datasets)
+T4 100-row golden set, disputed labels      per-split model spread 0.43 pts; seed spread / per-split model spread 8.6x (median of 5 datasets)
+
+hero (T4 100-row golden set, disputed labels, dataset 2): per-split model spread 0.43 pts; all 8 models tie exactly on 33.5% of splits; Logistic regression seed spread 3.73 pts -> 8.7x even split by split
+hero: Logistic regression averages 82.0%; one golden set reports anything from 71.0% to 91.0%; middle 90% of seeds 76.0% to 88.0%

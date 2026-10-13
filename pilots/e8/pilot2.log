@@ -1,0 +1,6 @@
+[robust] flip eta=0.3 sep=6 d=2         n=300  A_rms=  2.10 A_med=  3.04 B(R)=  3.60 seedSD=0.0384 modelSD/split=0.0185 LogReg:0.720 NaiveBayes:0.720 SVM:0.721 kNN:0.723 Tree:0.694 Forest:0.716 Boosting:0.709 MLP:0.721 (37s)
+[robust] flip eta=0.3 sep=4 d=2         n=300  A_rms=  2.37 A_med=  2.63 B(R)=  7.27 seedSD=0.0368 modelSD/split=0.0155 LogReg:0.712 NaiveBayes:0.711 SVM:0.720 kNN:0.715 Tree:0.718 Forest:0.713 Boosting:0.708 MLP:0.711 (23s)
+[robust] coinzone h=0.5 sep=6           n=300  A_rms=  1.30 A_med=  1.41 B(R)=  2.72 seedSD=0.0382 modelSD/split=0.0294 LogReg:0.750 NaiveBayes:0.752 SVM:0.774 kNN:0.766 Tree:0.781 Forest:0.777 Boosting:0.771 MLP:0.752 (29s)
+[robust] overlap sep=1.5                n=300  A_rms=  2.37 A_med=  3.01 B(R)=  9.25 seedSD=0.0403 modelSD/split=0.0179 LogReg:0.749 NaiveBayes:0.747 SVM:0.740 kNN:0.751 Tree:0.742 Forest:0.749 Boosting:0.745 MLP:0.748 (26s)
+[robust] flip eta=0.3 sep=6 d=5         n=300  A_rms=  1.80 A_med=  2.01 B(R)=  4.77 seedSD=0.0417 modelSD/split=0.0232 LogReg:0.674 NaiveBayes:0.673 SVM:0.658 kNN:0.658 Tree:0.673 Forest:0.677 Boosting:0.659 MLP:0.672 (25s)
+[tuned] flip eta=0.3 sep=6 d=2         n=300  A_rms=  1.32 A_med=  1.78 B(R)=  2.58 seedSD=0.0451 modelSD/split=0.0377 LogReg:0.719 NaiveBayes:0.720 SVM:0.720 kNN:0.720 Tree:0.713 Forest:0.713 Boosting:0.703 MLP:0.658 (366s)

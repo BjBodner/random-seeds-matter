@@ -227,7 +227,8 @@ def figures(out, img):
     def panel(ax, p, lo, hi, title):
         diff = 100 * (d300[d300.pair == p].fail_worse - d300[d300.pair == p].fail_better)
         edges = np.arange(lo - step / 2, hi + step, step)
-        _, _, patches = ax.hist(diff.clip(lo, hi), bins=edges, color=colors[2], edgecolor=BG)
+        counts, _, patches = ax.hist(diff.clip(lo, hi), bins=edges, color=colors[2], edgecolor=BG)
+        ax.set_ylim(0, counts.max() * 1.55)        # headroom so the labels never sit on the bars
         for patch, left in zip(patches, edges[:-1]):
             mid = left + step / 2
             patch.set_facecolor(colors[0] if mid < -1e-9 else colors[1] if abs(mid) < 1e-9 else colors[2])
@@ -235,7 +236,8 @@ def figures(out, img):
         wrong, tie = np.mean(diff < 0), np.mean(diff == 0)
         ax.set_title(title, fontsize=17, fontweight="bold", loc="left")
         ax.text(0.02, 0.95, f"worse ahead {100 * wrong:.1f}%\ntie {100 * tie:.1f}%", transform=ax.transAxes,
-                va="top", ha="left", fontsize=15, color=OKABE_ITO["orange"], fontweight="bold")
+                va="top", ha="left", fontsize=15, color=OKABE_ITO["orange"], fontweight="bold",
+                bbox=dict(boxstyle="square,pad=0.2", fc=BG, ec="none"), zorder=5)
         ax.set_yticks([])
         ax.grid(axis="y", visible=False)
         ax.spines["left"].set_visible(False)

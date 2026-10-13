@@ -1,0 +1,8 @@
+[robust] overlap sep=2.0 n=300          n=300  A_rms=  2.29 A_med=  2.65 B(R)=  8.16 seedSD=0.0333 modelSD/split=0.0140 LogReg:0.843 NaiveBayes:0.846 SVM:0.840 kNN:0.838 Tree:0.835 Forest:0.838 Boosting:0.835 MLP:0.844 (167s)
+[robust] overlap sep=1.5 n=300          n=300  A_rms=  2.19 A_med=  2.58 B(R)=  5.45 seedSD=0.0373 modelSD/split=0.0171 LogReg:0.793 NaiveBayes:0.789 SVM:0.785 kNN:0.784 Tree:0.782 Forest:0.788 Boosting:0.784 MLP:0.792 (137s)
+[robust] flip eta=0.2 sep=6 n=300       n=300  A_rms=  4.47 A_med=  6.57 B(R)= 11.54 seedSD=0.0344 modelSD/split=0.0078 LogReg:0.809 NaiveBayes:0.808 SVM:0.808 kNN:0.808 Tree:0.800 Forest:0.806 Boosting:0.805 MLP:0.809 (126s)
+[robust] GOLDEN overlap sep=2.0 1000+100 n=1100 A_rms=  3.43 A_med=  3.84 B(R)= 16.12 seedSD=0.0364 modelSD/split=0.0109 LogReg:0.835 NaiveBayes:0.836 SVM:0.835 kNN:0.833 Tree:0.833 Forest:0.832 Boosting:0.832 MLP:0.835 (152s)
+[robust] GOLDEN overlap sep=1.5 1000+100 n=1100 A_rms=  2.45 A_med=  2.91 B(R)=  6.72 seedSD=0.0383 modelSD/split=0.0165 LogReg:0.766 NaiveBayes:0.765 SVM:0.761 kNN:0.758 Tree:0.759 Forest:0.759 Boosting:0.763 MLP:0.764 (153s)
+[robust] GOLDEN flip eta=0.2 sep=6 1000+100 n=1100 A_rms= 13.75 A_med=37430001671.46 B(R)= 49.27 seedSD=0.0374 modelSD/split=0.0027 LogReg:0.804 NaiveBayes:0.803 SVM:0.803 kNN:0.803 Tree:0.802 Forest:0.802 Boosting:0.802 MLP:0.803 (93s)
+[robust] GOLDEN overlap sep=2.0 300+100 n=400  A_rms=  2.42 A_med=  2.72 B(R)=  9.35 seedSD=0.0316 modelSD/split=0.0131 LogReg:0.837 NaiveBayes:0.838 SVM:0.836 kNN:0.836 Tree:0.832 Forest:0.834 Boosting:0.833 MLP:0.835 (67s)
+done

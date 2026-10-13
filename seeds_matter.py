@@ -23,6 +23,7 @@ EXPERIMENTS = {
     "e6": "experiments.e6_fix",
     "e7": "experiments.e7_router",
     "e8": "experiments.e8_tailored",       # the effect at full strength (tailored datasets) + the dials
+    "e8d": "experiments.e8_descriptive",   # descriptive: per-split model spread for E8 (reads the E8 CSV)
     "e5r": "experiments.e5_prereg_mlp",      # robustness: n = 300 with the MLP exactly as pre-registered
     "e7d": "experiments.e7_descriptive",     # descriptive follow-up + McNemar sample-size table (reads E7 CSV)
 }

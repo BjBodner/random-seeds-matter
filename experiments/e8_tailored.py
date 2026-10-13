@@ -104,6 +104,12 @@ DIALS = ([("D1 bend", dict(bend=b), 210, 90) for b in (0.0, 0.5, 1.0, 1.5, 2.0)]
          + [("D2 size, bend 1", dict(bend=1.0), round(0.7 * n), n - round(0.7 * n)) for n in (150, 300, 1000, 3000)]
          + [("D3 golden-set size", dict(bend=0.0), 1000, g) for g in (50, 100, 300, 1000)])
 MODEL_NAMES = list(ZOO)
+DESCRIPTIONS = {
+    "T1 overlapping classes, 300 rows": "2 features, overlapping classes, 300 rows",
+    "T2 disputed labels, 300 rows": "2 features, 1 label in 5 disputed, 300 rows",
+    "T3 100-row golden set, overlapping classes": "2 features, overlapping classes, a 100-row golden set",
+    "T4 100-row golden set, disputed labels": "2 features, 1 label in 5 disputed, a 100-row golden set",
+}
 HERO_MODEL = "Logistic regression"
 
 
@@ -252,8 +258,7 @@ def plot_hero(acc, path, design=""):
     gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.56, 1], wspace=0)
     axl = fig.add_subplot(gs[0])
     axr = fig.add_subplot(gs[2], sharey=axl)
-    names = ["Logistic regression", "Naive Bayes", "SVM (RBF)", "kNN", "Decision tree", "Random forest",
-             "Gradient boosting", "Neural net"]
+    names = ["Logistic reg.", "Naive Bayes", "SVM", "kNN", "Tree", "Forest", "Boosting", "Neural net"]
     for ax, v, col, title in [(axl, means, sky, "Same data,\ndifferent models"),
                               (axr, runs, orange, "Same model,\ndifferent seeds")]:
         mu, sd = v.mean(), v.std(ddof=1)
@@ -269,9 +274,13 @@ def plot_hero(acc, path, design=""):
         ax.yaxis.set_major_formatter(FuncFormatter(lambda val, _: f"{val:.0f}%"))
     x = np.arange(len(means))
     axl.scatter(x, means, s=650, color=sky, edgecolor=BG, linewidth=3, zorder=4)
-    axl.set_xticks(x, names, fontsize=21, rotation=38, ha="right", rotation_mode="anchor")
+    axl.set_xticks(x, names, fontsize=22, rotation=32, ha="right", rotation_mode="anchor")
     axl.set_xlim(-0.6, len(means) - 0.4)
     axl.set_xlabel(f"8 models, each dot = its average over the same {len(acc)} splits", fontsize=22, labelpad=12)
+    if design:
+        fig.text(0.5, -0.12, f"Lab-built dataset: {DESCRIPTIONS[design]}\n(the median of 5 such datasets;"
+                 " spread = ±1 standard deviation)", ha="center", va="top", fontsize=24, color="#FFFFFF",
+                 fontweight="bold", linespacing=1.35)
     xs = np.arange(1, len(runs) + 1)
     axr.scatter(xs, runs, s=110, color=orange, edgecolor=BG, linewidth=0.8, zorder=4)
     axr.set_xticks([t for t in (1, 50, 100, 150, 200) if t <= len(runs)])
@@ -316,11 +325,15 @@ def plot_dials(dcells, nd, path):
     plt = dark_style()
     fig, axes = plt.subplots(1, 3, figsize=(21, 7.6), sharey=True, gridspec_kw={"wspace": 0.1})
     R = lambda i: dial_R(dcells, i, nd)  # noqa: E731
+    span = lambda idx: ([min(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx],  # noqa: E731
+                        [max(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx])
     sky, verm = OKABE_ITO["sky"], OKABE_ITO["vermillion"]
     style = dict(lw=4.5, ms=14, marker="o")
     ax = axes[0]
     bends = [0, 0.5, 1, 1.5, 2]
+    ax.fill_between(bends, *span(range(5)), color=verm, alpha=0.18, lw=0)
     ax.plot(bends, [R(i) for i in range(5)], color=verm, **style)
+    ax.plot([0], [R(0)], color=sky, ls="none", **{k: v for k, v in style.items() if k != "lw"})
     ax.set_xticks(bends, ["straight", "0.5", "1", "1.5", "2"])
     ax.set_xlim(-0.2, 2.2)
     ax.set_xlabel("how much the true boundary bends\n(n = 300)", fontsize=21)
@@ -328,6 +341,8 @@ def plot_dials(dcells, nd, path):
     ax = axes[1]
     ns = [150, 300, 1000, 3000]
     r0, r1 = [R(i) for i in range(5, 9)], [R(i) for i in range(9, 13)]
+    ax.fill_between(ns, *span(range(5, 9)), color=sky, alpha=0.18, lw=0)
+    ax.fill_between(ns, *span(range(9, 13)), color=verm, alpha=0.18, lw=0)
     ax.plot(ns, r0, color=sky, label="straight boundary", **style)
     ax.plot(ns, r1, color=verm, label="bent boundary (bend 1)", **style)
     ax.legend(loc="upper right", fontsize=18, handlelength=1.6)
@@ -338,13 +353,14 @@ def plot_dials(dcells, nd, path):
     ax.set_title("2. Add data", fontsize=23, loc="left", pad=14)
     ax = axes[2]
     gsz = [50, 100, 300, 1000]
+    ax.fill_between(gsz, *span(range(13, 17)), color=sky, alpha=0.18, lw=0)
     ax.plot(gsz, [R(i) for i in range(13, 17)], color=sky, **style)
     ax.set_xscale("log")
     ax.set_xticks(gsz, [f"{g:,}" for g in gsz])
     ax.set_xlim(40, 1250)
     ax.set_xlabel("golden-set size\n(1,000 training rows, straight boundary)", fontsize=21)
     ax.set_title("3. Grow the golden set", fontsize=23, loc="left", pad=14)
-    allR = [R(i) for i in range(len(DIALS))]
+    allR = [r for lo_hi in (span(range(len(DIALS))),) for side in lo_hi for r in side]
     for ax in axes:
         ax.axhline(1, color="#FFFFFF", ls="--", lw=2)
         ax.set_yscale("log")
@@ -361,6 +377,8 @@ def plot_dials(dcells, nd, path):
                  fontsize=19, fontweight="bold")
     axes[0].text(0.03, 0.04, "models win (R < 1)", transform=axes[0].transAxes, va="bottom", fontsize=19,
                  fontweight="bold")
+    fig.text(0.5, -0.06, "Lines: median of 3 datasets per setting; bands: their min to max.", ha="center",
+             va="top", fontsize=19)
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
