@@ -22,6 +22,7 @@ EXPERIMENTS = {
     "e5": "experiments.e5_decomposition",
     "e6": "experiments.e6_fix",
     "e7": "experiments.e7_router",
+    "e8": "experiments.e8_tailored",       # the effect at full strength (tailored datasets) + the dials
     "e5r": "experiments.e5_prereg_mlp",      # robustness: n = 300 with the MLP exactly as pre-registered
     "e7d": "experiments.e7_descriptive",     # descriptive follow-up + McNemar sample-size table (reads E7 CSV)
 }
@@ -51,7 +52,7 @@ def main():
     p.add_argument("--quick", action="store_true")
     p.add_argument("--only", default=",".join(EXPERIMENTS), help="comma list, e.g. e1,e3")
     p.add_argument("--n-jobs", type=int, default=int(os.environ.get("N_JOBS", -1)))
-    p.add_argument("--redraw", action="store_true", help="redraw figures from results/*.csv without refitting (e1, e5)")
+    p.add_argument("--redraw", action="store_true", help="redraw figures from results/*.csv without refitting (e1, e5, e8)")
     a = p.parse_args()
     if a.redraw:
         from experiments.common import out_dirs
