@@ -45,9 +45,10 @@ Each script's code between the `# --- article: ... ---` markers is exactly what 
 
 - `PREREGISTRATION.md` was committed before any experiment ran (see `git log`). Every prediction is reported as held or failed in `results/*.txt` and in the article.
 - E8's designs were chosen on disclosed pilot runs (separate seed roots); the pilot code and logs are in `pilots/e8/` and are never quoted as results.
-- Deviations from the pre-registration are listed in `article/DECISIONS.md`. The main one: E5's MLP uses `early_stopping=True` for runtime. `experiments/e5_prereg_mlp.py` reruns n = 300 with the MLP exactly as pre-registered; that rerun reverses the one E5 prediction that failed.
+- Deviations from the pre-registration are recorded in `PREREGISTRATION.md` (the **Deviation** note, the robustness check and the appended outcomes). The main one: E5's MLP uses `early_stopping=True` for runtime. `experiments/e5_prereg_mlp.py` reruns n = 300 with the MLP exactly as pre-registered; that rerun reverses the one E5 prediction that failed.
 - Redraw every figure from the CSVs without refitting: `python seeds_matter.py --redraw --only e1,e3,e5,e7,e8`.
 - `tools/check_numbers.py` fails the build if any number in the article's prose is missing from `results/`.
+- The article is published separately on Towards Data Science. Its draft and build files (`article/`) are not part of this repository, so `tools/build_article.sh` and `tools/render_draft.py` are included for transparency only. The references in `PREREGISTRATION.md` to `article/DECISIONS.md` point to a private authoring log that is not published; every deviation that matters is recorded in `PREREGISTRATION.md` itself.
 
 ## Data
 
