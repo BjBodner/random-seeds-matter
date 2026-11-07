@@ -427,7 +427,7 @@ def plot_dials(dcells, nd, path):
     ax.fill_between(ns, *span(range(9, 13)), color=verm, alpha=0.18, lw=0)
     ax.plot(ns, r0, color=sky, label="straight boundary", **style)
     ax.plot(ns, r1, color=verm, label="bent boundary (bend 1)", **style)
-    for r_, col_, label_ in ((r0, sky, "straight\nboundary"), (r1, verm, "bent\nboundary")):   # label the lines directly: no legend box over the data
+    for r_, col_, label_ in ((r0, sky, "straight\nboundary"), (r1, verm, "bent\n(bend 1)")):   # label the lines directly: no legend box over the data
         ax.text(3400, r_[-1], label_, color=col_, fontsize=22, fontweight="bold", va="center", ha="left", linespacing=0.95)
     ax.set_xscale("log")
     ax.set_xticks(ns, [f"{n:,}" for n in ns])

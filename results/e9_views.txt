@@ -95,3 +95,14 @@ D3 golden-set size: golden set 50 rows (1000 train)    strict median 3.17 (min 2
 D3 golden-set size: golden set 100 rows (1000 train)   strict median 3.32 (min 2.42, max 3.80); registered R median 7.57
 D3 golden-set size: golden set 300 rows (1000 train)   strict median 3.01 (min 2.34, max 3.01); registered R median 8.95
 D3 golden-set size: golden set 1000 rows (1000 train)  strict median 1.82 (min 1.82, max 2.22); registered R median 3.80
+
+== 6b. The registered predictions about R, re-scored on the strict ratio (they were written for R and held on R) ==
+P1.1 median ratio at n = 150 (breast cancer) >= 2.0: strict 1.22 -> FAILS
+P1.2a breast cancer ratio > 1 at every n: strict smallest 0.99 -> FAILS
+P1.2b synthetic crosses 1 between n = 250 and n = 1,000: strict between n = 100 and n = 250 -> FAILS
+P8.1 every design has median ratio >= 4: strict 2.4, 3.4, 3.1, 8.6 -> FAILS
+P8.2 the largest design median ratio >= 10: strict 8.6 -> FAILS
+P8.3 D1: ratio >= 3 at bend 0 and < 1 at bend 2: strict 2.37 and 0.61 -> FAILS
+P8.4 D2: bend 1 < 1 at n = 1,000 and 3,000; bend 0 > 1 at every n: strict bend 1: 0.58, 0.32; bend 0 smallest 1.95 -> holds
+P8.5 D3: lower at g = 1,000 than at g = 50, and > 1 at every g: strict 1.82 vs 3.17; smallest 1.82 -> holds
+on the strict ratio, 6 of these 8 predictions (all of which held on R) would fail

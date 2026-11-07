@@ -299,6 +299,36 @@ def run(out, img=None, quick=False):
         for dial, setting in dict.fromkeys((d_, s_) for (d_, s_, _) in dials):
             s = [strict(dials[dial, setting, j]) for j in range(nd)]
             print(f"{dial}: {setting:<34} strict median {np.median(s):.2f} (min {min(s):.2f}, max {max(s):.2f}); registered R median {np.median([R_of(dials[dial, setting, j]) for j in range(nd)]):.2f}")
+
+        print("\n== 6b. The registered predictions about R, re-scored on the strict ratio (they were written for R and held on R) ==")
+        med_e1 = {(ds, n): np.median([strict(cells_e1[k]) for k in cells_e1 if k[0] == ds and k[1] == n])
+                  for (ds, n, _) in cells_e1}
+        sizes_bc = sorted(n for (ds, n) in med_e1 if ds == "breast_cancer")
+        sizes_sy = sorted(n for (ds, n) in med_e1 if ds == "synthetic")
+        cross = next((f"between n = {a} and n = {b}" for a, b in zip(sizes_sy, sizes_sy[1:])
+                      if med_e1["synthetic", a] >= 1 > med_e1["synthetic", b]), "no crossing")
+        dmed = {(d_, s_): np.median([strict(dials[d_, s_, j]) for j in range(nd)]) for (d_, s_, _) in dials}
+        dkeys = list(dmed)
+        e8med = {name: np.median([strict(main[name, j]) for j in range(n_data)]) for name in DESIGN_TEST_ROWS}
+        verdict = lambda ok: "holds" if ok else "FAILS"  # noqa: E731
+        checks = [
+            ("P1.1 median ratio at n = 150 (breast cancer) >= 2.0", f"{med_e1['breast_cancer', 150]:.2f}", med_e1["breast_cancer", 150] >= 2.0),
+            ("P1.2a breast cancer ratio > 1 at every n", "smallest " + f"{min(med_e1['breast_cancer', n] for n in sizes_bc):.2f}",
+             all(med_e1["breast_cancer", n] > 1 for n in sizes_bc)),
+            ("P1.2b synthetic crosses 1 between n = 250 and n = 1,000", cross, cross.startswith("between n = 250") or cross.startswith("between n = 500")),
+            ("P8.1 every design has median ratio >= 4", ", ".join(f"{v:.1f}" for v in e8med.values()), all(v >= 4 for v in e8med.values())),
+            ("P8.2 the largest design median ratio >= 10", f"{max(e8med.values()):.1f}", max(e8med.values()) >= 10),
+            ("P8.3 D1: ratio >= 3 at bend 0 and < 1 at bend 2", f"{dmed[dkeys[0]]:.2f} and {dmed[dkeys[4]]:.2f}", dmed[dkeys[0]] >= 3 and dmed[dkeys[4]] < 1),
+            ("P8.4 D2: bend 1 < 1 at n = 1,000 and 3,000; bend 0 > 1 at every n",
+             f"bend 1: {dmed[dkeys[11]]:.2f}, {dmed[dkeys[12]]:.2f}; bend 0 smallest {min(dmed[k] for k in dkeys[5:9]):.2f}",
+             dmed[dkeys[11]] < 1 and dmed[dkeys[12]] < 1 and all(dmed[k] > 1 for k in dkeys[5:9])),
+            ("P8.5 D3: lower at g = 1,000 than at g = 50, and > 1 at every g",
+             f"{dmed[dkeys[16]]:.2f} vs {dmed[dkeys[13]]:.2f}; smallest {min(dmed[k] for k in dkeys[13:17]):.2f}",
+             dmed[dkeys[16]] < dmed[dkeys[13]] and all(dmed[k] > 1 for k in dkeys[13:17])),
+        ]
+        for text, value, ok in checks:
+            print(f"{text}: strict {value} -> {verdict(ok)}")
+        print(f"on the strict ratio, {sum(not c[2] for c in checks)} of these {len(checks)} predictions (all of which held on R) would fail")
     if img:
         plot_pairing(same, diff, os.path.join(img, "e9a_same_vs_different.png"),
                      label="Lab-built dataset: a 100-row golden set where 1 label in 5 is disputed (the hero's dataset, 200 splits).\n"

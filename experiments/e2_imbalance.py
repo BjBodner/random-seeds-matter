@@ -113,7 +113,7 @@ def figure(df, stats, img):
     from experiments.common import OKABE_ITO, dark_style, fmt, save_fig
     plt = dark_style()
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(12.5, 5), gridspec_kw={"width_ratios": [1.1, 1]})
-    n = 1000
+    n = 4000                                                    # the article's worked example
     d = df[df.n == n]
     bins = np.linspace(0, 1, 41)
     for setting, c in (("unstratified", OKABE_ITO["orange"]), ("stratified", OKABE_ITO["sky"])):
