@@ -275,6 +275,30 @@ def run(out, img=None, quick=False):
             all_vals.append(m.ravel())
         total = np.var(np.concatenate(all_vals))
         print(f"share of all the movement that sits inside one (model, split) cell, i.e. the same model on the same split with a different seed: {np.mean(cells) / total:.1%}")
+
+        print("\n== 6. The strict (like-for-like) wobble ratio everywhere: one model's swing across splits / how far apart the models land on the SAME split ==")
+        print("(The registered ratio R divides by the spread of the models' 200-split averages instead; it is always at least as large. Both are listed.)")
+        strict = lambda m: m.std(axis=0, ddof=1).mean() / np.sqrt(np.mean(m.var(axis=1, ddof=1)))  # noqa: E731
+        for name in DESIGN_TEST_ROWS:
+            s = [strict(main[name, j]) for j in range(n_data)]
+            print(f"{name:<43} strict median {np.median(s):.1f} (min {min(s):.1f}, max {max(s):.1f}); registered R median {np.median([R_of(main[name, j]) for j in range(n_data)]):.1f}")
+        print(f"hero dataset: strict {strict(hero):.1f}, registered R {R_of(hero):.1f}")
+        e1 = pd.read_csv(os.path.join(out, "e1_split.csv"))
+        cells_e1 = {}
+        for key, g in e1.groupby(["dataset", "n", "subsample"], sort=False):
+            order = g.split_seed.drop_duplicates()
+            cells_e1[key] = g.pivot(index="split_seed", columns="model", values="accuracy").reindex(order).to_numpy()
+        s150 = [strict(cells_e1["breast_cancer", 150, j]) for j in range(5)]
+        print("breast cancer, 150 rows, the 5 draws: strict " + ", ".join(f"{v:.2f}" for v in s150)
+              + f" (median {np.median(s150):.2f}); registered R " + ", ".join(f"{R_of(cells_e1['breast_cancer', 150, j]):.2f}" for j in range(5)))
+        for ds in ("breast_cancer", "synthetic"):
+            for n in sorted({k[1] for k in cells_e1 if k[0] == ds}):
+                s = [strict(cells_e1[k]) for k in cells_e1 if k[0] == ds and k[1] == n]
+                r = [R_of(cells_e1[k]) for k in cells_e1 if k[0] == ds and k[1] == n]
+                print(f"{ds:<13} n={n:<5} strict median {np.median(s):.2f} (min {min(s):.2f}, max {max(s):.2f}); registered R median {np.median(r):.2f}")
+        for dial, setting in dict.fromkeys((d_, s_) for (d_, s_, _) in dials):
+            s = [strict(dials[dial, setting, j]) for j in range(nd)]
+            print(f"{dial}: {setting:<34} strict median {np.median(s):.2f} (min {min(s):.2f}, max {max(s):.2f}); registered R median {np.median([R_of(dials[dial, setting, j]) for j in range(nd)]):.2f}")
     if img:
         plot_pairing(same, diff, os.path.join(img, "e9a_same_vs_different.png"),
                      label="Lab-built dataset: a 100-row golden set where 1 label in 5 is disputed (the hero's dataset, 200 splits).\n"

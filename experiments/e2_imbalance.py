@@ -126,8 +126,8 @@ def figure(df, stats, img):
     a1.set_ylabel("number of split seeds")
     a1.set_title(f"n = {n:,}: stratifying barely changes the spread")
     a1.set_xlim(0, max(0.8, d.recall.max() + 0.1))
-    a1.set_ylim(0, a1.get_ylim()[1] * 1.18)                                    # headroom so the legend never sits on a bar
-    a1.legend(loc="upper right", fontsize=9)
+    a1.set_ylim(0, a1.get_ylim()[1] * 1.45)                                    # headroom so the legend never sits on a bar
+    a1.legend(loc="upper right", fontsize=13)
 
     marks = {400: "o", 1000: "s", 4000: "D"}
     cols = {400: OKABE_ITO["purple"], 1000: OKABE_ITO["yellow"], 4000: OKABE_ITO["green"]}   # not the left panel's orange / sky
@@ -148,7 +148,7 @@ def figure(df, stats, img):
     a2.set_xlabel("positives in the test set, k (log scale)")
     a2.set_ylabel("std of recall across splits")
     a2.set_title("More positives, not stratification, shrink the noise")
-    a2.legend(fontsize=9, loc="upper right")
+    a2.legend(fontsize=13, loc="upper right")
     fig.tight_layout()
     fig.text(0.5, -0.01, "Right panel: hollow markers = unstratified runs grouped by k; filled = stratified; "
              "dashed lines = the wobble that counting alone predicts.", ha="center", va="top", fontsize=11, color="#BBBBBB")

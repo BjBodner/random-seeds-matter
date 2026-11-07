@@ -235,8 +235,11 @@ def figures(out, img):
         ax.axvline(0, color="#FFFFFF", lw=1.0, ls=":")
         wrong, tie = np.mean(diff < 0), np.mean(diff == 0)
         ax.set_title(title, fontsize=17, fontweight="bold", loc="left")
-        ax.text(0.02, 0.95, f"worse ahead {100 * wrong:.1f}%\ntie {100 * tie:.1f}%", transform=ax.transAxes,
+        ax.text(0.02, 0.95, f"worse ahead {100 * wrong:.1f}%", transform=ax.transAxes,
                 va="top", ha="left", fontsize=15, color=OKABE_ITO["orange"], fontweight="bold",
+                bbox=dict(boxstyle="square,pad=0.2", fc=BG, ec="none"), zorder=5)
+        ax.text(0.02, 0.80, f"tie {100 * tie:.1f}%", transform=ax.transAxes,      # in the tie bars' grey
+                va="top", ha="left", fontsize=15, color=colors[1], fontweight="bold",
                 bbox=dict(boxstyle="square,pad=0.2", fc=BG, ec="none"), zorder=5)
         ax.set_yticks([])
         ax.grid(axis="y", visible=False)

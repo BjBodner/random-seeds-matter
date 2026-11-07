@@ -58,3 +58,40 @@ worse model looks better across sets: mean 45.4% (5th to 95th percentile 42.2% t
 GradBoost: change only the split -> typical swing 3.47 pts; on one fixed split, change only the model's own seed -> typical swing 2.42 pts
 RandomForest: change only the split -> typical swing 3.29 pts; on one fixed split, change only the model's own seed -> typical swing 2.40 pts
 share of all the movement that sits inside one (model, split) cell, i.e. the same model on the same split with a different seed: 33.4%
+
+== 6. The strict (like-for-like) wobble ratio everywhere: one model's swing across splits / how far apart the models land on the SAME split ==
+(The registered ratio R divides by the spread of the models' 200-split averages instead; it is always at least as large. Both are listed.)
+T1 overlapping classes, 300 rows            strict median 2.4 (min 2.0, max 2.6); registered R median 6.9
+T2 disputed labels, 300 rows                strict median 3.4 (min 2.4, max 7.4); registered R median 7.6
+T3 100-row golden set, overlapping classes  strict median 3.1 (min 2.7, max 4.3); registered R median 13.3
+T4 100-row golden set, disputed labels      strict median 8.6 (min 8.3, max 9.8); registered R median 30.8
+hero dataset: strict 8.6, registered R 30.8
+breast cancer, 150 rows, the 5 draws: strict 0.86, 1.22, 0.94, 1.25, 1.38 (median 1.22); registered R 1.11, 3.41, 1.51, 2.42, 3.53
+breast_cancer n=100   strict median 1.29 (min 1.21, max 1.43); registered R median 3.43
+breast_cancer n=150   strict median 1.22 (min 0.86, max 1.38); registered R median 2.42
+breast_cancer n=250   strict median 1.21 (min 1.00, max 1.33); registered R median 2.34
+breast_cancer n=400   strict median 0.99 (min 0.98, max 1.44); registered R median 1.54
+breast_cancer n=569   strict median 1.00 (min 1.00, max 1.00); registered R median 1.48
+synthetic     n=100   strict median 1.12 (min 0.91, max 1.27); registered R median 2.51
+synthetic     n=250   strict median 0.87 (min 0.75, max 0.96); registered R median 1.18
+synthetic     n=500   strict median 0.55 (min 0.46, max 0.62); registered R median 0.61
+synthetic     n=1000  strict median 0.33 (min 0.30, max 0.38); registered R median 0.34
+synthetic     n=2500  strict median 0.19 (min 0.17, max 0.20); registered R median 0.19
+synthetic     n=5000  strict median 0.12 (min 0.11, max 0.12); registered R median 0.12
+D1 bend: bend 0 (n = 300)                   strict median 2.37 (min 2.23, max 2.51); registered R median 6.37
+D1 bend: bend 0.5 (n = 300)                 strict median 1.84 (min 1.41, max 1.96); registered R median 3.44
+D1 bend: bend 1 (n = 300)                   strict median 1.33 (min 1.17, max 1.35); registered R median 1.95
+D1 bend: bend 1.5 (n = 300)                 strict median 1.00 (min 0.82, max 1.15); registered R median 1.35
+D1 bend: bend 2 (n = 300)                   strict median 0.61 (min 0.55, max 0.71); registered R median 0.69
+D2 size, bend 0: n = 150 (105 train / 45 test)      strict median 1.95 (min 1.58, max 2.06); registered R median 4.55
+D2 size, bend 0: n = 300 (210 train / 90 test)      strict median 2.36 (min 1.87, max 2.70); registered R median 5.38
+D2 size, bend 0: n = 1000 (700 train / 300 test)    strict median 2.58 (min 2.50, max 2.62); registered R median 7.60
+D2 size, bend 0: n = 3000 (2100 train / 900 test)   strict median 2.74 (min 2.28, max 2.85); registered R median 6.47
+D2 size, bend 1: n = 150 (105 train / 45 test)      strict median 1.29 (min 1.15, max 1.31); registered R median 2.20
+D2 size, bend 1: n = 300 (210 train / 90 test)      strict median 1.10 (min 0.82, max 1.20); registered R median 1.51
+D2 size, bend 1: n = 1000 (700 train / 300 test)    strict median 0.58 (min 0.55, max 0.64); registered R median 0.63
+D2 size, bend 1: n = 3000 (2100 train / 900 test)   strict median 0.32 (min 0.28, max 0.34); registered R median 0.33
+D3 golden-set size: golden set 50 rows (1000 train)    strict median 3.17 (min 2.55, max 3.43); registered R median 10.84
+D3 golden-set size: golden set 100 rows (1000 train)   strict median 3.32 (min 2.42, max 3.80); registered R median 7.57
+D3 golden-set size: golden set 300 rows (1000 train)   strict median 3.01 (min 2.34, max 3.01); registered R median 8.95
+D3 golden-set size: golden set 1000 rows (1000 train)  strict median 1.82 (min 1.82, max 2.22); registered R median 3.80

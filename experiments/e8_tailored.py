@@ -212,6 +212,12 @@ def extras(cells, n_data, split_seeds):
     print(f"Falsifier (largest median R < 5): {'TRIGGERED' if top < 5 else 'not triggered'}")
 
 
+def strict_R(acc):
+    """Like-for-like wobble ratio (descriptive, added 2026-11-06): one model's swing across splits (mean std, as in R)
+    over how far apart the models land on the SAME split (root-mean-square over splits of the std across models)."""
+    return acc.std(axis=0, ddof=1).mean() / np.sqrt(np.mean(acc.var(axis=1, ddof=1)))
+
+
 def dial_R(dcells, i, nd):
     return np.median([seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)])
 
@@ -358,7 +364,7 @@ def plot_hero_same_split(acc, path, design=""):
         ax.set_xlim(-6, n + 7)
     axl.scatter(np.repeat(xs, a.shape[1]), centred.ravel(), s=60, color=sky, edgecolor=BG, linewidth=0.5,
                 alpha=0.8, zorder=4)
-    axl.set_xlabel(f"the 8 models on each of the {n} splits,\ncentred on that split's average", fontsize=22, labelpad=12)
+    axl.set_xlabel(f"the 8 models on each of the {n} splits, minus that\nsplit's average (drawn around {a.mean():.0f}%)", fontsize=22, labelpad=12)
     axr.scatter(xs, runs, s=110, color=orange, edgecolor=BG, linewidth=0.8, zorder=4)
     axr.set_xlabel(f"{HERO_MODEL}, one dot per random split", fontsize=22, labelpad=12)
     axr.yaxis.tick_right()
@@ -398,9 +404,11 @@ def plot_dials(dcells, nd, path):
     from experiments.common import OKABE_ITO, dark_style
     plt = dark_style()
     fig, axes = plt.subplots(3, 1, figsize=(12, 19), sharey=True, gridspec_kw={"hspace": 0.68})  # one column: readable on a phone
-    R = lambda i: dial_R(dcells, i, nd)  # noqa: E731
-    span = lambda idx: ([min(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx],  # noqa: E731
-                        [max(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx])
+    # Since 2026-11-06 the figure shows the strict, like-for-like ratio (models compared on the same split);
+    # the registered ratio on averages (dial_R) is still printed in results/e8_dials.txt.
+    R = lambda i: np.median([strict_R(dcells[i, j][0]) for j in range(nd)])  # noqa: E731
+    span = lambda idx: ([min(strict_R(dcells[i, j][0]) for j in range(nd)) for i in idx],  # noqa: E731
+                        [max(strict_R(dcells[i, j][0]) for j in range(nd)) for i in idx])
     sky, verm = OKABE_ITO["sky"], OKABE_ITO["vermillion"]
     style = dict(lw=4.5, ms=14, marker="o")
     ax = axes[0]
@@ -454,7 +462,7 @@ def plot_dials(dcells, nd, path):
                 fontsize=22, fontweight="bold")
         ax.text(0.02, 0.05, "model wins (below 1)", transform=ax.transAxes, va="bottom", fontsize=22,
                 fontweight="bold")
-    fig.text(0.5, -0.012, "Wobble ratio = how far one model swings across splits ÷ how far apart the models' averages are.\n"
+    fig.text(0.5, -0.012, "Wobble ratio = how far one model swings across splits ÷ how far apart the models land on the same split.\n"
              "Lines: median of 3 datasets per setting; bands: their min to max.", ha="center", va="top", fontsize=20)
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")

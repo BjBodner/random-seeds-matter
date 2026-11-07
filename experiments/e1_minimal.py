@@ -50,7 +50,7 @@ def opening_scene(n_rows=150, n_splits=200):
     for name, a in zip(MODELS, acc.T):
         print(f"{name:<13} mean {a.mean():.3f}  std {a.std(ddof=1):.3f}  min {a.min():.3f}  max {a.max():.3f}")
     swing = acc.std(axis=0, ddof=1).mean()                      # how far one model moves across splits
-    gap = acc.mean(axis=0).std(ddof=1)                          # how far apart the models' averages sit
+    gap = np.sqrt(np.mean(acc.var(axis=1, ddof=1)))             # how far apart the models land on the same split
     best, second = np.argsort(acc.mean(axis=0))[::-1][:2]
     print(f"wobble ratio {swing / gap:.2f}; the second-best model wins on {np.mean(acc[:, second] > acc[:, best]):.1%} "
           f"of splits and ties on {np.mean(acc[:, second] == acc[:, best]):.1%}")

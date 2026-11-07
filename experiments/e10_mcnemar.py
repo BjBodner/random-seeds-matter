@@ -21,7 +21,7 @@ def compare(a_right, b_right):
     b_only = int(np.sum(~a_right & b_right))                    # B right, A wrong
     d = a_only + b_only                                         # the disagreements
     p = binomtest(a_only, d, 0.5).pvalue if d else 1.0          # exact McNemar test
-    verdict = "tie" if abs(a_only - b_only) < 2 * np.sqrt(d) else "real gap"   # the rule of thumb
+    verdict = "too close to call" if abs(a_only - b_only) < 2 * np.sqrt(d) else "real gap"   # the rule of thumb
     return a_only, b_only, p, verdict
 # --- end ---
 
