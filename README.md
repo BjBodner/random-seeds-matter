@@ -34,9 +34,12 @@ python seeds_matter.py --only e1,e3 --n-jobs 8
 | E5 robustness — the MLP exactly as pre-registered (n = 300) | `experiments/e5_prereg_mlp.py` (`--only e5r`) | `results/e5_prereg_mlp.txt`, `.csv` | (bar in `e5_variance_shares.png`) |
 | E5 follow-up (exploratory) — close pair only, bootstrap CIs | `experiments/e5_exploratory.py` (reads the E5 CSV) | `results/e5_exploratory.txt` | `e5_variance_shares.png` |
 | E7 / E7b — the golden-set lottery: an intent router on Banking77 (a real upgrade + 3 small tweaks) | `experiments/e7_router.py` | `results/e7_router.txt`, `results/e7b_tweaks.txt`, `.csv` | `e7a_golden_set_lottery.png`, `e7b_until_they_dont.png` |
-| E8 — the effect at full strength: 4 tailored datasets (hero) and 3 dials that switch it off | `experiments/e8_tailored.py` | `results/e8_tailored.txt`, `results/e8_dials.txt`, `.csv` | `e8a_seeds_vs_models.png` (hero), `e8b_dials.png` |
+| E8 — the effect at full strength: 4 tailored datasets (hero) and 3 dials that switch it off | `experiments/e8_tailored.py` | `results/e8_tailored.txt`, `results/e8_dials.txt`, `.csv` | `e8a_seeds_vs_models.png` (like-for-like hero), `e8a_averages_vs_runs.png` (hero), `e8b_dials.png` |
 | E8 descriptive — the spread across the 8 models on the same split (answers 'averages vs single runs') | `experiments/e8_descriptive.py` (`--only e8d`, reads the E8 CSV) | `results/e8_descriptive.txt` | — |
 | E7 descriptive + McNemar sample-size table | `experiments/e7_descriptive.py` (`--only e7d`) | `results/e7_descriptive.txt` | — |
+| E9 descriptive (not pre-registered) — who finishes first, the test-size ruler √(a(1−a)/n), same split vs different splits, the tie rule, split seed vs model seed (reads the E1/E5/E8 CSVs) | `experiments/e9_views.py` (`--only e9`) | `results/e9_views.txt` | `e9a_same_vs_different.png` |
+| E1 minimal (not pre-registered) — the opening scene as one self-contained script, same seeds as E1 | `experiments/e1_minimal.py` (`--only e1m`) | `results/e1_minimal.txt` | — |
+| E10 descriptive (not pre-registered) — the disagreement check as code (exact McNemar test next to the 2√d rule), on 1,000 golden sets from the E7 router data | `experiments/e10_mcnemar.py` (`--only e10`) | `results/e10_mcnemar.txt` | — |
 | E6 — comparing two models honestly | `experiments/e6_fix.py` | `results/e6_fix.txt`, `.csv` | `e6_procedures.png` |
 
 Each script's code between the `# --- article: ... ---` markers is exactly what the article shows. `tools/render_draft.py` pastes it into the article, and `tools/check_code_blocks.py` fails if the two ever drift. Running a script directly prints the article's numbers; `seeds_matter.py` also writes the CSVs, figures and pre-registration checks.

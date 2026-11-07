@@ -275,7 +275,7 @@ def figures(cells, img):
     ax.plot([xb, xr], [acc[w, best], acc[w, runner]], color=OKABE_ITO["yellow"], lw=1.6, ls="--",
             marker="o", ms=8, mfc="none", mew=1.8)
     ax.annotate("one split seed, cherry-picked as\nthe deliberate worst case",
-                xy=(xr + 0.05, acc[w, runner]), xytext=(xr + 0.55, acc[w, runner] - 0.04),
+                xy=(xr + 0.05, acc[w, runner]), xytext=(xr + 0.5, 1.034),        # in the empty space above the data
                 fontsize=10, color=OKABE_ITO["yellow"], va="center",
                 arrowprops=dict(arrowstyle="->", color=OKABE_ITO["yellow"]))
     lo, hi = means.min(), means.max()
@@ -284,6 +284,8 @@ def figures(cells, img):
     ax.text(xg + 0.08, (lo + hi) / 2, f"all 4 model\nmeans sit\nwithin {fmt(hi - lo)}", fontsize=10, va="center")
     ax.set_xticks(range(len(order)), [names[m] for m in order])
     ax.set_xlim(-0.6, len(order) + 0.45)
+    ax.set_ylim(ax.get_ylim()[0], 1.058)                                        # headroom for the note
+    ax.set_yticks(np.arange(0.825, 1.0001, 0.025))
     ax.set_ylabel("test accuracy")
     ax.set_title(f"Same 150 rows, same 4 models, {acc.shape[0]} different train/test splits")
     ax.grid(axis="x", visible=False)

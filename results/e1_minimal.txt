@@ -1,0 +1,6 @@
+E1 minimal (descriptive re-run, not pre-registered): the opening scene as one self-contained script; same seeds as E1, subsample 0, n = 150
+LogReg        mean 0.977  std 0.022  min 0.844  max 1.000
+RandomForest  mean 0.915  std 0.037  min 0.822  max 1.000
+SVC           mean 0.960  std 0.029  min 0.844  max 1.000
+kNN           mean 0.940  std 0.031  min 0.844  max 1.000
+wobble ratio 1.11; the second-best model wins on 8.0% of splits and ties on 38.0%

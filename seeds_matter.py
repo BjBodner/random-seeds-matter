@@ -24,6 +24,9 @@ EXPERIMENTS = {
     "e7": "experiments.e7_router",
     "e8": "experiments.e8_tailored",       # the effect at full strength (tailored datasets) + the dials
     "e8d": "experiments.e8_descriptive",   # descriptive: per-split model spread for E8 (reads the E8 CSV)
+    "e1m": "experiments.e1_minimal",       # descriptive: the opening scene as one self-contained script (same seeds as E1)
+    "e10": "experiments.e10_mcnemar",      # descriptive: the disagreement check as code, on the E7 router data
+    "e9": "experiments.e9_views",          # descriptive: who wins, the test-size ruler, same split vs different splits (reads E1/E8 CSVs)
     "e5r": "experiments.e5_prereg_mlp",      # robustness: n = 300 with the MLP exactly as pre-registered
     "e7d": "experiments.e7_descriptive",     # descriptive follow-up + McNemar sample-size table (reads E7 CSV)
 }

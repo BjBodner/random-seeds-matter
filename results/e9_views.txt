@@ -1,0 +1,60 @@
+E9 descriptive views (NOT pre-registered; chosen after seeing the results). No refitting: reads the E1 and E8 CSVs.
+check: hero = T4 100-row golden set, disputed labels, dataset 2; Logistic regression seed spread 3.73 pts (E8 reports 3.73)
+
+== 1. Who wins? ==
+hero, 200 golden sets, 8 models
+share of golden sets on which each model was alone at the top: Decision tree 17.0%, Logistic regression 0.0%, SVM (RBF) 0.0%, Naive Bayes 0.0%, kNN (k=31) 0.0%, Random forest 0.0%, Gradient boosting 0.0%, Neural net 0.0%
+tie for first place on 83.0% of golden sets; models that were alone on top at least once: 1 of 8; models that won or tied for first at least once: 8 of 8
+worst model on average (Decision tree, 81.7%) versus best on average (kNN (k=31), 82.1%), same golden set: the worst is ahead on 18.5%, tied on 43.5%, behind on 38.0%
+T1 overlapping classes, 300 rows            median over 5 datasets: models alone on top at least once 8 of 8; won or tied for first at least once 8 of 8; tie for first on 63.5% of splits
+T2 disputed labels, 300 rows                median over 5 datasets: models alone on top at least once 2 of 8; won or tied for first at least once 8 of 8; tie for first on 92.5% of splits
+T3 100-row golden set, overlapping classes  median over 5 datasets: models alone on top at least once 8 of 8; won or tied for first at least once 8 of 8; tie for first on 67.5% of splits
+T4 100-row golden set, disputed labels      median over 5 datasets: models alone on top at least once 1 of 8; won or tied for first at least once 8 of 8; tie for first on 88.5% of splits
+real data (breast cancer, 150 rows, opening subsample, 200 splits): share of splits alone on top: LogReg 48.0%, SVC 8.0%, kNN 2.0%, RandomForest 0.0%; tie for first on 42.0%; models alone on top at least once 3 of 4
+   the weakest model on average, RandomForest (91.5%), won or tied for first on 3.0% of splits
+
+== 2. The ruler: the swing that test-set size alone predicts, sqrt(a (1 - a) / n), in points ==
+setting                                      test rows  typical swing (observed)  ruler  observed / ruler
+T1 overlapping classes, 300 rows                    90                      3.36   3.76              0.89
+T2 disputed labels, 300 rows                        90                      3.70   4.23              0.88
+T3 100-row golden set, overlapping classes         100                      3.37   3.59              0.94
+T4 100-row golden set, disputed labels             100                      3.86   3.94              0.98
+D2 size, bend 0: n = 150 (105 train / 45 test)        45                      4.51   5.42              0.83
+D2 size, bend 0: n = 300 (210 train / 90 test)        90                      3.29   3.93              0.84
+D2 size, bend 0: n = 1000 (700 train / 300 test)       300                      1.81   2.13              0.85
+D2 size, bend 0: n = 3000 (2100 train / 900 test)       900                      1.04   1.24              0.84
+D3 golden-set size: golden set 50 rows (1000 train)        50                      5.06   5.11              0.99
+D3 golden-set size: golden set 100 rows (1000 train)       100                      3.36   3.69              0.91
+D3 golden-set size: golden set 300 rows (1000 train)       300                      1.75   2.16              0.81
+D3 golden-set size: golden set 1000 rows (1000 train)      1000                      0.82   1.15              0.72
+breast cancer, 150 rows (4 models)                  45                      2.96   3.22              0.92
+rule of thumb at about 80% accuracy: swing = 40 / sqrt(n) points: n = 100 -> 4.0, n = 400 -> 2.0, n = 1600 -> 1.0, n = 10000 -> 0.4
+one test row moves accuracy by 100 / n points: n = 45 -> 2.22, n = 100 -> 1.00, n = 300 -> 0.33, n = 1000 -> 0.10
+the same rule for a rare class: recall wobbles by 40 / sqrt(k) points at about 80% recall, k = rare cases in the test set: k = 25 -> 8.0, k = 100 -> 4.0, k = 400 -> 2.0
+
+== 3. Same split or different splits? Gap between two models (worse minus better), pooled over all model pairs ==
+spread = standard deviation of the gap, in points; 'worse looks better' = share of comparisons where the worse model scores strictly higher
+T1 overlapping classes, 300 rows            same split 1.99, different splits 4.64; 2.3x noisier; worse looks better on 23.2% (same) vs 42.1% (different) (median over 5 datasets)
+T2 disputed labels, 300 rows                same split 1.48, different splits 5.14; 3.5x noisier; worse looks better on 9.4% (same) vs 41.6% (different) (median over 5 datasets)
+T3 100-row golden set, overlapping classes  same split 1.51, different splits 4.89; 3.2x noisier; worse looks better on 25.7% (same) vs 42.4% (different) (median over 5 datasets)
+T4 100-row golden set, disputed labels      same split 0.59, different splits 5.57; 9.4x noisier; worse looks better on 5.0% (same) vs 45.2% (different) (median over 5 datasets)
+hero: same split 0.59, different splits 5.57; 9.4x noisier (5600 comparisons: 28 model pairs x 200 splits)
+hero: the worse model of the pair looks better on 6.4%, ties on 78.0%, looks worse on 15.6% of same-split comparisons; on different-split comparisons: better 46.0%, ties 6.7%, worse 47.4%
+real data (breast cancer, 150 rows, 4 models, 6 pairs, median over 5 subsamples): same split 3.37, different splits 4.45; 1.3x noisier
+real data, opening subsample, SVC vs LogReg (LogReg is better on average): same split SVC ahead on 8.0%, tied on 38.0%, behind on 54.0%; different splits SVC ahead on 20.5%, tied on 18.0%, behind on 61.5%
+
+== 4. The tie rule: only the rows where two models disagree can pick a winner ==
+Among d disagreements, the lead (rows won by A minus rows won by B) is a fair-coin count with a typical size of sqrt(d) rows if the models are really equal. A lead of less than 2 * sqrt(d) rows is inside the usual 5% bar: call it a tie.
+(A lead has the same odd/even parity as d. This is the 5% bar for one planned comparison, not for the best of several tries.)
+d = 15 disagreements on 300 rows: 2 * sqrt(15) = 7.7 rows, so a lead of 7 rows or fewer (2.3 points) is a tie
+d = 100 disagreements on 1000 rows: 2 * sqrt(100) = 20.0 rows, so a lead of 18 rows or fewer (1.8 points) is a tie
+example: 9 wins to 6 on d = 15 (a lead of 3): a fair coin gives 9 or more heads in 15 flips 30.4% of the time
+
+== 3b. How much does the choice of 'different splits' pairing matter? Hero data, every possible shift 1..199 ==
+noise ratio across all shifts: mean 8.9x (5th to 95th percentile 8.3 to 9.4; min 7.8, max 9.5); the plotted pairing (shift 1) gives 9.4x
+worse model looks better across sets: mean 45.4% (5th to 95th percentile 42.2% to 48.5%)
+
+== 5. Which seed? The split versus the model's own seed (E5 data: random forest and gradient boosting, n = 300, 30 split seeds x 30 model seeds) ==
+GradBoost: change only the split -> typical swing 3.47 pts; on one fixed split, change only the model's own seed -> typical swing 2.42 pts
+RandomForest: change only the split -> typical swing 3.29 pts; on one fixed split, change only the model's own seed -> typical swing 2.40 pts
+share of all the movement that sits inside one (model, split) cell, i.e. the same model on the same split with a different seed: 33.4%

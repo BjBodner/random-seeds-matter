@@ -121,15 +121,16 @@ def figure(df, stats, img):
         a1.hist(r, bins=bins, histtype="step", lw=2.2, color=c, label=f"{setting} (std {fmt(r.std(ddof=1))})")
     st = stats[n]
     a1.axvspan(st["r"] - st["floor"], st["r"] + st["floor"], color="#FFFFFF", alpha=0.10, lw=0,
-               label=f"mean recall +/- binomial floor (k = {st['k']})")
+               label=f"mean recall ± predicted wobble (k = {st['k']})")
     a1.set_xlabel("recall on the test set")
     a1.set_ylabel("number of split seeds")
     a1.set_title(f"n = {n:,}: stratifying barely changes the spread")
-    a1.legend(loc="upper right", fontsize=9)
     a1.set_xlim(0, max(0.8, d.recall.max() + 0.1))
+    a1.set_ylim(0, a1.get_ylim()[1] * 1.18)                                    # headroom so the legend never sits on a bar
+    a1.legend(loc="upper right", fontsize=9)
 
     marks = {400: "o", 1000: "s", 4000: "D"}
-    cols = {400: OKABE_ITO["orange"], 1000: OKABE_ITO["sky"], 4000: OKABE_ITO["green"]}
+    cols = {400: OKABE_ITO["purple"], 1000: OKABE_ITO["yellow"], 4000: OKABE_ITO["green"]}   # not the left panel's orange / sky
     for m in SIZES:
         u = df[(df.n == m) & (df.setting == "unstratified")]
         g = u.groupby("k").recall.agg(["std", "count", "mean"])
@@ -148,7 +149,7 @@ def figure(df, stats, img):
     a2.set_ylabel("std of recall across splits")
     a2.set_title("More positives, not stratification, shrink the noise")
     a2.legend(fontsize=9, loc="upper right")
-    a2.text(0.02, 0.03, "hollow = unstratified runs grouped by k;  dashed = binomial floor",
-            transform=a2.transAxes, fontsize=9, color="#BBBBBB")
     fig.tight_layout()
+    fig.text(0.5, -0.01, "Right panel: hollow markers = unstratified runs grouped by k; filled = stratified; "
+             "dashed lines = the wobble that counting alone predicts.", ha="center", va="top", fontsize=11, color="#BBBBBB")
     save_fig(fig, img, "e2_imbalance")

@@ -260,7 +260,7 @@ def plot_hero(acc, path, design=""):
     axr = fig.add_subplot(gs[2], sharey=axl)
     names = ["Logistic reg.", "Naive Bayes", "SVM", "kNN", "Tree", "Forest", "Boosting", "Neural net"]
     for ax, v, col, title in [(axl, means, sky, "Same data,\ndifferent models"),
-                              (axr, runs, orange, "Same model,\ndifferent seeds")]:
+                              (axr, runs, orange, "Same model,\ndifferent splits")]:
         mu, sd = v.mean(), v.std(ddof=1)
         thin = 2 * sd < 0.02 * np.ptp(runs)           # a band thinner than the dots: fill it, no edge lines
         ax.axhspan(mu - sd, mu + sd, color=col, alpha=0.6 if thin else 0.28, lw=0, zorder=1)
@@ -274,11 +274,11 @@ def plot_hero(acc, path, design=""):
         ax.yaxis.set_major_formatter(FuncFormatter(lambda val, _: f"{val:.0f}%"))
     x = np.arange(len(means))
     axl.scatter(x, means, s=650, color=sky, edgecolor=BG, linewidth=3, zorder=4)
-    axl.set_xticks(x, names, fontsize=22, rotation=32, ha="right", rotation_mode="anchor")
+    axl.set_xticks(x, names, fontsize=22, rotation=48, ha="right", rotation_mode="anchor")
     axl.set_xlim(-0.6, len(means) - 0.4)
     axl.set_xlabel(f"8 models, each dot = its average over the same {len(acc)} splits", fontsize=22, labelpad=12)
     if design:
-        fig.text(0.5, -0.12, f"Lab-built dataset: {DESCRIPTIONS[design]}\n(the median of 5 such datasets;"
+        fig.text(0.5, -0.17, f"Lab-built dataset: {DESCRIPTIONS[design]}\n(the median of 5 such datasets;"
                  " spread = ±1 standard deviation)", ha="center", va="top", fontsize=24, color="#FFFFFF",
                  fontweight="bold", linespacing=1.35)
     xs = np.arange(1, len(runs) + 1)
@@ -286,7 +286,7 @@ def plot_hero(acc, path, design=""):
     axr.set_xticks([t for t in (1, 50, 100, 150, 200) if t <= len(runs)])
     axr.tick_params(axis="x", labelsize=24)
     axr.set_xlim(-6, len(runs) + 7)
-    axr.set_xlabel(f"{HERO_MODEL}, one dot per random seed", fontsize=22, labelpad=12)
+    axr.set_xlabel(f"{HERO_MODEL}, one dot per random split", fontsize=22, labelpad=12)
     axr.yaxis.tick_right()                     # keep the gap free for the arrow and the bubble
     axr.tick_params(axis="y", labelright=True, labelleft=False)
     axr.spines["left"].set_visible(False)
@@ -298,7 +298,7 @@ def plot_hero(acc, path, design=""):
     axl.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5 if hi - lo > 15 else 2))
 
     # the two spreads, labelled with the same precision so the ratio can be checked by eye
-    axl.text(len(means) - 0.5, means.mean() + sd_models + 0.35, f"spread ±{sd_models:.2f} pts",
+    axl.text(len(means) - 0.5, means.mean() + sd_models + 0.95, f"spread ±{sd_models:.2f} pts",
              ha="right", va="bottom", fontsize=29, color=sky, fontweight="bold")
     axr.text(len(runs) + 5, hi + pad * 0.7, f"spread ±{sd_seeds:.2f} pts", ha="right", va="bottom",
              fontsize=29, color=orange, fontweight="bold")
@@ -310,8 +310,82 @@ def plot_hero(acc, path, design=""):
                                    arrowstyle="-|>,head_length=1.6,head_width=0.8", color=yellow, lw=8,
                                    connectionstyle="arc3,rad=-0.3", zorder=20))
     bl, br = axl.get_position(), axr.get_position()
-    fig.text((bl.x1 + br.x0) / 2, bl.y0 + 0.80 * (bl.y1 - bl.y0), f"{ratio:.1f}×\nmore", ha="center",
-             va="center", fontsize=54, fontweight="bold", color=BG, linespacing=0.92, zorder=21,
+    fig.text((bl.x1 + br.x0) / 2, bl.y0 + 0.80 * (bl.y1 - bl.y0), f"{ratio:.1f}×\nmore\nspread", ha="center",
+             va="center", fontsize=50, fontweight="bold", color=BG, linespacing=0.95, zorder=21,
+             bbox=dict(boxstyle="round,pad=0.42", fc=yellow, ec="none"))
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    fig.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return ratio
+
+
+def plot_hero_same_split(acc, path, design=""):
+    """Like-for-like hero (added 2026-11-06, descriptive): both panels are single runs.
+    Left: on each split, the 8 models' scores, centred on that split's average (how far apart the models are
+    on the SAME split). Right: one model's score across the 200 splits. Ratio = 3.73 / 0.43 = 8.7x."""
+    import matplotlib
+    from matplotlib.patches import ConnectionPatch
+    from matplotlib.ticker import FuncFormatter
+    from experiments.common import BG, OKABE_ITO, dark_style
+    plt = dark_style()
+    sky, orange, yellow = OKABE_ITO["sky"], OKABE_ITO["orange"], OKABE_ITO["yellow"]
+    a = 100 * acc
+    centred = a - a.mean(axis=1, keepdims=True) + a.mean()             # model spread within each split
+    runs = a[:, MODEL_NAMES.index(HERO_MODEL)]
+    sd_models = np.sqrt(np.mean(a.var(axis=1, ddof=1)))                  # RMS over splits, as in e8_descriptive
+    sd_seeds = runs.std(ddof=1)
+    ratio = sd_seeds / sd_models
+    n = len(a)
+    xs = np.arange(1, n + 1)
+
+    fig = plt.figure(figsize=(20, 10))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1, 0.56, 1], wspace=0)
+    axl = fig.add_subplot(gs[0])
+    axr = fig.add_subplot(gs[2], sharey=axl)
+    for ax, mu, sd, col, title in [(axl, a.mean(), sd_models, sky, "Same split,\ndifferent models"),
+                                   (axr, runs.mean(), sd_seeds, orange, "Same model,\ndifferent splits")]:
+        thin = 2 * sd < 0.02 * np.ptp(runs)
+        ax.axhspan(mu - sd, mu + sd, color=col, alpha=0.6 if thin else 0.28, lw=0, zorder=1)
+        for edge in ([] if thin else (mu - sd, mu + sd)):
+            ax.axhline(edge, color=col, lw=3, zorder=2)
+        ax.set_title(title, fontsize=36, fontweight="bold", color=col, pad=24, linespacing=1.05)
+        ax.grid(axis="x", visible=False)
+        ax.grid(axis="y", color="#333333", lw=1)
+        ax.tick_params(axis="y", labelsize=27, length=0, pad=10)
+        ax.tick_params(axis="x", labelsize=24, length=0, pad=10)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda val, _: f"{val:.0f}%"))
+        ax.set_xticks([t for t in (1, 50, 100, 150, 200) if t <= n])
+        ax.set_xlim(-6, n + 7)
+    axl.scatter(np.repeat(xs, a.shape[1]), centred.ravel(), s=60, color=sky, edgecolor=BG, linewidth=0.5,
+                alpha=0.8, zorder=4)
+    axl.set_xlabel(f"the 8 models on each of the {n} splits,\ncentred on that split's average", fontsize=22, labelpad=12)
+    axr.scatter(xs, runs, s=110, color=orange, edgecolor=BG, linewidth=0.8, zorder=4)
+    axr.set_xlabel(f"{HERO_MODEL}, one dot per random split", fontsize=22, labelpad=12)
+    axr.yaxis.tick_right()
+    axr.tick_params(axis="y", labelright=True, labelleft=False)
+    axr.spines["left"].set_visible(False)
+    axr.spines["right"].set_visible(True)
+    axl.set_ylabel("test accuracy", fontsize=30, labelpad=14)
+    lo, hi = runs.min(), runs.max()
+    pad = 0.06 * (hi - lo)
+    axl.set_ylim(lo - pad, hi + pad * 2.6)
+    axl.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5 if hi - lo > 15 else 2))
+    axl.text(n + 5, a.mean() + sd_models + 2.2, f"spread ±{sd_models:.2f} pts", ha="right", va="bottom",
+             fontsize=29, color=sky, fontweight="bold")
+    axr.text(n + 5, hi + pad * 0.7, f"spread ±{sd_seeds:.2f} pts", ha="right", va="bottom",
+             fontsize=29, color=orange, fontweight="bold")
+    if design:
+        fig.text(0.5, -0.12, f"Lab-built dataset: {DESCRIPTIONS[design]}\n(the median of 5 such datasets;"
+                 " spread = ±1 standard deviation; every dot is one model on one split)", ha="center", va="top",
+                 fontsize=24, color="#FFFFFF", fontweight="bold", linespacing=1.35)
+    start = (n + 6, a.mean())
+    end = (-5, runs.mean() + 0.6 * sd_seeds)
+    fig.add_artist(ConnectionPatch(xyA=start, coordsA=axl.transData, xyB=end, coordsB=axr.transData,
+                                   arrowstyle="-|>,head_length=1.6,head_width=0.8", color=yellow, lw=8,
+                                   connectionstyle="arc3,rad=-0.3", zorder=20))
+    bl, br = axl.get_position(), axr.get_position()
+    fig.text((bl.x1 + br.x0) / 2, bl.y0 + 0.80 * (bl.y1 - bl.y0), f"{ratio:.1f}×\nmore\nspread", ha="center",
+             va="center", fontsize=50, fontweight="bold", color=BG, linespacing=0.95, zorder=21,
              bbox=dict(boxstyle="round,pad=0.42", fc=yellow, ec="none"))
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
@@ -323,7 +397,7 @@ def plot_dials(dcells, nd, path):
     from matplotlib.ticker import FuncFormatter, NullFormatter, NullLocator
     from experiments.common import OKABE_ITO, dark_style
     plt = dark_style()
-    fig, axes = plt.subplots(1, 3, figsize=(21, 7.6), sharey=True, gridspec_kw={"wspace": 0.1})
+    fig, axes = plt.subplots(3, 1, figsize=(12, 19), sharey=True, gridspec_kw={"hspace": 0.68})  # one column: readable on a phone
     R = lambda i: dial_R(dcells, i, nd)  # noqa: E731
     span = lambda idx: ([min(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx],  # noqa: E731
                         [max(seeds_vs_zoo(dcells[i, j][0])[2] for j in range(nd)) for i in idx])
@@ -336,8 +410,8 @@ def plot_dials(dcells, nd, path):
     ax.plot([0], [R(0)], color=sky, ls="none", **{k: v for k, v in style.items() if k != "lw"})
     ax.set_xticks(bends, ["straight", "0.5", "1", "1.5", "2"])
     ax.set_xlim(-0.2, 2.2)
-    ax.set_xlabel("how much the true boundary bends\n(n = 300)", fontsize=21)
-    ax.set_title("1. Bend the true boundary", fontsize=23, loc="left", pad=14)
+    ax.set_xlabel("how much the true boundary bends\n(n = 300)", fontsize=24)
+    ax.set_title("1. Bend the true boundary", fontsize=27, loc="left", pad=14)
     ax = axes[1]
     ns = [150, 300, 1000, 3000]
     r0, r1 = [R(i) for i in range(5, 9)], [R(i) for i in range(9, 13)]
@@ -345,12 +419,13 @@ def plot_dials(dcells, nd, path):
     ax.fill_between(ns, *span(range(9, 13)), color=verm, alpha=0.18, lw=0)
     ax.plot(ns, r0, color=sky, label="straight boundary", **style)
     ax.plot(ns, r1, color=verm, label="bent boundary (bend 1)", **style)
-    ax.legend(loc="upper right", fontsize=18, handlelength=1.6)
+    for r_, col_, label_ in ((r0, sky, "straight\nboundary"), (r1, verm, "bent\nboundary")):   # label the lines directly: no legend box over the data
+        ax.text(3400, r_[-1], label_, color=col_, fontsize=22, fontweight="bold", va="center", ha="left", linespacing=0.95)
     ax.set_xscale("log")
     ax.set_xticks(ns, [f"{n:,}" for n in ns])
-    ax.set_xlim(120, 3800)
-    ax.set_xlabel("dataset size n\n(70% train / 30% test)", fontsize=21)
-    ax.set_title("2. Add data", fontsize=23, loc="left", pad=14)
+    ax.set_xlim(120, 9500)
+    ax.set_xlabel("dataset size n\n(70% train / 30% test)", fontsize=24)
+    ax.set_title("2. Add data", fontsize=27, loc="left", pad=14)
     ax = axes[2]
     gsz = [50, 100, 300, 1000]
     ax.fill_between(gsz, *span(range(13, 17)), color=sky, alpha=0.18, lw=0)
@@ -358,13 +433,15 @@ def plot_dials(dcells, nd, path):
     ax.set_xscale("log")
     ax.set_xticks(gsz, [f"{g:,}" for g in gsz])
     ax.set_xlim(40, 1250)
-    ax.set_xlabel("golden-set size\n(1,000 training rows, straight boundary)", fontsize=21)
-    ax.set_title("3. Grow the golden set", fontsize=23, loc="left", pad=14)
+    ax.set_xlabel("golden-set size\n(1,000 training rows, straight boundary)", fontsize=24)
+    ax.set_title("3. Grow the golden set", fontsize=27, loc="left", pad=14)
     allR = [r for lo_hi in (span(range(len(DIALS))),) for side in lo_hi for r in side]
     for ax in axes:
         ax.axhline(1, color="#FFFFFF", ls="--", lw=2)
         ax.set_yscale("log")
-        ax.tick_params(labelsize=19)
+        ax.tick_params(labelsize=24)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.set_ylabel("wobble ratio", fontsize=26)
         ax.xaxis.set_minor_locator(NullLocator())
         ax.yaxis.set_minor_locator(NullLocator())
         ax.xaxis.set_minor_formatter(NullFormatter())
@@ -372,13 +449,13 @@ def plot_dials(dcells, nd, path):
     axes[0].yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
     lo_y, hi_y = axes[0].get_ylim()
     axes[0].set_yticks([t for t in (0.25, 0.5, 1, 2, 4, 8, 16, 32, 64) if lo_y <= t <= hi_y])
-    axes[0].set_ylabel("R = seed spread / model spread", fontsize=22)
-    axes[0].text(0.97, 0.96, "seeds win (R > 1)", transform=axes[0].transAxes, va="top", ha="right",
-                 fontsize=19, fontweight="bold")
-    axes[0].text(0.03, 0.04, "models win (R < 1)", transform=axes[0].transAxes, va="bottom", fontsize=19,
-                 fontweight="bold")
-    fig.text(0.5, -0.06, "Lines: median of 3 datasets per setting; bands: their min to max.", ha="center",
-             va="top", fontsize=19)
+    for ax in axes:
+        ax.text(0.98, 0.95, "split wins (above 1)", transform=ax.transAxes, va="top", ha="right",
+                fontsize=22, fontweight="bold")
+        ax.text(0.02, 0.05, "model wins (below 1)", transform=ax.transAxes, va="bottom", fontsize=22,
+                fontweight="bold")
+    fig.text(0.5, -0.012, "Wobble ratio = how far one model swings across splits ÷ how far apart the models' averages are.\n"
+             "Lines: median of 3 datasets per setting; bands: their min to max.", ha="center", va="top", fontsize=20)
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
@@ -386,7 +463,8 @@ def plot_dials(dcells, nd, path):
 
 def figures(cells, n_data, dcells, nd, img):
     design, inst, _ = hero_choice(cells, n_data)
-    plot_hero(cells[design, inst][0], os.path.join(img, "e8a_seeds_vs_models.png"), design)
+    plot_hero_same_split(cells[design, inst][0], os.path.join(img, "e8a_seeds_vs_models.png"), design)   # the article's hero
+    plot_hero(cells[design, inst][0], os.path.join(img, "e8a_averages_vs_runs.png"), design)          # the earlier hero (averages vs runs, 30.9x)
     plot_dials(dcells, nd, os.path.join(img, "e8b_dials.png"))
 
 

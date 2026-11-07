@@ -1,0 +1,4 @@
+E10 descriptive (not pre-registered): the disagreement check on 300-query golden sets drawn from the 3,080 E7 test queries, router v2 (A) against v1 (B)
+golden set 1: compare(v2, v1) -> (16, 3, p = 0.004, 'real gap'): v2 alone right on 16 queries, v1 alone on 3; a lead of 13 on 19 disagreements, against a bar of 2 * sqrt(19) = 8.7
+over 1,000 golden sets: the rule of thumb calls a real gap on 96.2%, the exact test (p < 0.05) on 92.9%; they agree on 96.7% of golden sets
+disagreements per golden set: median 23 of 300 (7.7%)

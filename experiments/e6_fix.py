@@ -7,10 +7,7 @@ if __package__ in (None, ""):
 
 from experiments.common import QUICK, np, seeds, subsample  # noqa: F401
 from experiments.e1_split import MODELS, load_breast_cancer, lottery  # noqa: F401
-
-# --- article: e6 ---
-from scipy import stats
-from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 
 
 def fold_diffs(X, y, a, b, splitter):
@@ -20,6 +17,11 @@ def fold_diffs(X, y, a, b, splitter):
         acc = [MODELS[m]().fit(X[tr], y[tr]).score(X[te], y[te]) for m in (a, b)]
         d.append(acc[0] - acc[1])
     return np.array(d)
+
+
+# --- article: e6 ---
+import numpy as np
+from scipy import stats
 
 
 def t_summary(mean, se, df):
@@ -37,14 +39,7 @@ def corrected_ttest(d, n_train, n_test):
     """Nadeau & Bengio (2003): inflate the variance for overlapping training sets."""
     se = np.sqrt((1 / len(d) + n_test / n_train) * d.var(ddof=1))
     return t_summary(d.mean(), se, len(d) - 1)
-
-
-def five_by_two_cv(X, y, a, b, seed_list):
-    """Dietterich (1998): 5 repetitions of 2-fold CV, t statistic on 5 df."""
-    d = np.array([fold_diffs(X, y, a, b, StratifiedKFold(2, shuffle=True, random_state=s))
-                  for s in seed_list])                    # shape (5, 2)
-    s2 = ((d - d.mean(axis=1, keepdims=True)) ** 2).sum(axis=1)
-    return t_summary(d[0, 0], np.sqrt(s2.mean()), 5)      # numerator: the first fold
+# --- end ---
 
 
 def e6_fix(quick=QUICK):
@@ -59,20 +54,38 @@ def e6_fix(quick=QUICK):
     d = fold_diffs(X, y, best, runner, folds)
     rows["10x5 CV, naive t-test"] = naive_ttest(d)
     rows["10x5 CV, corrected t-test"] = corrected_ttest(d, n_train=120, n_test=30)
-    rows["5x2 CV t-test"] = five_by_two_cv(X, y, best, runner, seeds(6, 2, 5))
     print(f"accuracy({best}) - accuracy({runner}):")
     for name, r in rows.items():
-        print(f"  {name:<27} {r[0]:+.4f}" + (f"  95% CI {r[1]:+.4f} to {r[2]:+.4f}  p = {r[3]:.3f}"
+        p_text = "p < 0.001" if len(r) > 1 and r[3] < 0.001 else (f"p = {r[3]:.3f}" if len(r) > 1 else "")
+        print(f"  {name:<27} {r[0]:+.4f}" + (f"  95% CI {r[1]:+.4f} to {r[2]:+.4f}  {p_text}"
                                              if len(r) > 1 else "  (one number, no error bar)"))
     return rows, d
 
 
 if __name__ == "__main__":
     e6 = e6_fix()
-# --- end ---
 
 
 # ======================================================================= repo-only
+def five_by_two_cv(X, y, a, b, seed_list):
+    """Dietterich (1998): 5 repetitions of 2-fold CV, t statistic on 5 df. Not shown in the article."""
+    from sklearn.model_selection import StratifiedKFold
+    d = np.array([fold_diffs(X, y, a, b, StratifiedKFold(2, shuffle=True, random_state=s))
+                  for s in seed_list])                    # shape (5, 2)
+    s2 = ((d - d.mean(axis=1, keepdims=True)) ** 2).sum(axis=1)
+    return t_summary(d[0, 0], np.sqrt(s2.mean()), 5)      # numerator: the first fold
+
+
+def five_by_two_extra(quick=QUICK):
+    """The same pair as e6_fix (same data, same seeds), scored with the 5x2cv test."""
+    X, y = load_breast_cancer(return_X_y=True)
+    X, y = subsample(X, y, 150, seeds(1, 0, 1)[0])
+    acc = lottery(X, y, seeds(1, 2, 30 if quick else 200))
+    names = list(MODELS)
+    best, runner = (names[i] for i in np.argsort(acc.mean(axis=0))[::-1][:2])
+    return five_by_two_cv(X, y, best, runner, seeds(6, 2, 5))
+
+
 def run(out, img, quick=False):
     import pandas as pd
     from experiments.common import tee
@@ -81,8 +94,13 @@ def run(out, img, quick=False):
         print("setting: breast cancer, n = 150 (E1 opening scene, subsample 0); the top pair over the E1 split"
               " seeds; the cherry-picked seed is E1's deliberate worst case")
         rows, d = e6_fix(quick)
+        x52 = five_by_two_extra(quick)
+        print(f"  5x2 CV t-test (extra, not in the article) {x52[0]:+.4f}  95% CI {x52[1]:+.4f} to {x52[2]:+.4f}  p = {x52[3]:.3f}"
+              "  (its point estimate is the first fold's difference)")
         extras(rows, d)
-    pd.DataFrame([(k, *r, *([np.nan] * (4 - len(r)))) for k, r in rows.items()],
+    all_rows = dict(rows)
+    all_rows["5x2 CV t-test (extra)"] = x52
+    pd.DataFrame([(k, *r, *([np.nan] * (4 - len(r)))) for k, r in all_rows.items()],
                  columns=["procedure", "estimate", "ci_low", "ci_high", "p"]).to_csv(os.path.join(out, "e6_fix.csv"), index=False)
     pd.DataFrame({"fold": range(len(d)), "diff": d}).to_csv(os.path.join(out, "e6_fold_diffs.csv"), index=False)
     figure(rows, img)
@@ -120,13 +138,13 @@ def figure(rows, img):
         r = rows[name]
         if len(r) > 1:
             ax.hlines(y_, r[1], r[2], color=c, lw=3)
-            ax.text(r[2] + 0.004, y_ + 0.15, "p < 0.001" if r[3] < 0.001 else f"p = {r[3]:.3f}", fontsize=10)
+            ax.text(r[2], y_ + 0.22, "p < 0.001" if r[3] < 0.001 else f"p = {r[3]:.3f}", fontsize=11, ha="right")
         else:
-            ax.text(r[0], y_ - 0.3, "one number, no error bar", fontsize=9, ha="center", color="#BBBBBB")
+            ax.text(r[0] + 0.005, y_, "one number, no error bar", fontsize=10, ha="left", va="center", color="#BBBBBB")
         ax.plot(r[0], y_, "o", color=c, ms=10, mec="#FFFFFF")
     ax.axvline(0, color="#FFFFFF", ls="--", lw=1.2)
     ax.set_yticks(range(len(names))[::-1], names)
     ax.set_xlabel("accuracy difference, better-on-average model minus runner-up (95% CI)")
-    ax.set_title("Same two models, four verdicts")
+    ax.set_title("Same two models, three verdicts")
     ax.grid(axis="y", visible=False)
     save_fig(fig, img, "e6_procedures")
